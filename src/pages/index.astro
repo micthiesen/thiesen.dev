@@ -1,0 +1,48 @@
+---
+import Base from "../layouts/Base.astro";
+import PostList from "../components/PostList.astro";
+import { getPosts } from "../lib/posts";
+
+const posts = await getPosts();
+const projects = posts
+  .filter((post) => post.data.kind === "project" && post.data.featured)
+  .slice(0, 4);
+const notes = posts.filter((post) => post.data.kind === "note").slice(0, 4);
+---
+
+<Base>
+  <section class="intro measure" aria-labelledby="intro-title">
+    <p class="eyebrow">Projects & notes</p>
+    <h1 id="intro-title">Software, tools, and things worth investigating.</h1>
+    <p>
+      I’m Michael. This is a place for the things I build and the notes I keep along the
+      way.
+    </p>
+  </section>
+  <section class="home-section" aria-labelledby="work-title">
+    <div class="section-heading">
+      <h2 id="work-title">Selected work</h2>
+      <a href="/projects/">
+        All projects <span aria-hidden="true">↗</span>
+      </a>
+    </div>
+    {projects.length ? (
+      <PostList posts={projects} showImages />
+    ) : (
+      <p class="empty-state">Project write-ups are on their way.</p>
+    )}
+  </section>
+  <section class="home-section" aria-labelledby="notes-title">
+    <div class="section-heading">
+      <h2 id="notes-title">Recent notes</h2>
+      <a href="/notes/">
+        All notes <span aria-hidden="true">↗</span>
+      </a>
+    </div>
+    {notes.length ? (
+      <PostList posts={notes} />
+    ) : (
+      <p class="empty-state">No notes published yet.</p>
+    )}
+  </section>
+</Base>
