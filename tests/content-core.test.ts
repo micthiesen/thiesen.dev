@@ -248,8 +248,97 @@ describe("normal Markdown boundary", () => {
   test("gives actionable errors for deferred rich content", async () => {
     await post('::figure{src="./pixel.png" alt="A pixel"}\n\n```vega-lite\n{}\n```');
     const messages = await errors();
-    expect(messages).toContain("Rich content directives are not implemented yet");
+    expect(messages).toContain('Unsupported directive "figure"');
     expect(messages).toContain("Vega charts are not implemented yet");
+  });
+
+  test("accepts Markdown, code, references, and local images inside details", async () => {
+    const directory = await post(
+      [
+        ":::details[Technical details]",
+        "",
+        "A **formatted** paragraph with [a reference][source].",
+        "",
+        "- One item",
+        "- Another item",
+        "",
+        "![An image inside the expandable section][pixel]",
+        "",
+        "| Item | Value |\n| --- | --- |\n| One | Two |",
+        "",
+        "```rust\nlet on = true;\n```",
+        "",
+        "[pixel]: ./pixel.png",
+        "[source]: https://example.com",
+        ":::",
+        "",
+        ":::details[Another section]",
+        "",
+        "Its own content.",
+        ":::",
+      ].join("\n"),
+    );
+    await writeFile(path.join(directory, "pixel.png"), png);
+    expect((await validatePosts(root)).issues).toEqual([]);
+  });
+
+  test.each([
+    [":::unknown[Title]\nBody\n:::", 'Unsupported directive "unknown"'],
+    [":details[Title]", "use :::details[Summary]"],
+    ["::details[Title]", "use :::details[Summary]"],
+    [":::details\nBody\n:::", "plain-text summary"],
+    [":::details[ ]\nBody\n:::", "plain-text summary"],
+    [":::details[**Title**]\nBody\n:::", "plain-text summary"],
+    [":::details[[Link](https://example.com)]\nBody\n:::", "plain-text summary"],
+    [":::details[Title]{open}\nBody\n:::", "do not accept attributes"],
+    [":::details[Title]{onclick=alert}\nBody\n:::", "do not accept attributes"],
+    [":::details[Title]{}\nBody\n:::", "without attributes"],
+    [":::details[Title]\nBody", "Close each details section"],
+    [":::details[Title]\n:::", "need Markdown content"],
+    [":::details[Title]\n[ref]: https://example.com\n:::", "need Markdown content"],
+    [":::details[Title]\n:::details[Inner]\nBody\n:::\n:::", "nested directives"],
+    ["> :::details[Title]\n> Body\n> :::", "top-level blocks"],
+  ])("rejects unsupported details syntax: %s", async (body, expected) => {
+    await post(body);
+    expect(await errors()).toContain(expected);
+  });
+
+  test("keeps the content safety boundary inside details and reports source lines", async () => {
+    await post(
+      [
+        ":::details[Technical details]",
+        "",
+        "<script>alert('no')</script>",
+        "",
+        "[Unsafe](javascript:alert%281%29)",
+        "",
+        "![](./missing.png)",
+        "",
+        "![Remote](https://example.com/remote.png)",
+        "",
+        "![Reference][remote]",
+        "",
+        "[remote]: ../outside.png",
+        ":::",
+      ].join("\n"),
+    );
+    const result = await validatePosts(root);
+    expect(result.posts).toEqual([]);
+    expect(result.issues).toContainEqual({
+      file: path.join(root, "example-post/index.md"),
+      line: 8,
+      message:
+        "Raw HTML and JSX are not supported in normal posts; use plain Markdown or show code in a fenced block",
+    });
+    const messages = result.issues.map((issue) => issue.message).join("\n");
+    expect(messages).toContain("Unsafe link URL");
+    expect(messages).toContain("meaningful alt text");
+    expect(messages).toContain("Missing local image");
+    expect(
+      result.issues.filter((issue) =>
+        issue.message.includes("Images must use local paths"),
+      ),
+    ).toHaveLength(2);
   });
 
   test("rejects unsafe protocols in links and reference definitions", async () => {

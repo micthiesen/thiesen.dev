@@ -127,6 +127,15 @@ async function assertPublishedPage(
   expect(html).toContain("useful");
   expect(html).toContain(`${marker}_FULL_ENDING`);
   expect(html).toContain(`https://example.com/${slug}-ending/`);
+  const details = html.match(/<details>[\s\S]*?<\/details>/)?.[0];
+  expect(details).toBeDefined();
+  expect(details).toMatch(
+    /<summary>Further details &(?:amp|#x26); evidence<\/summary>/,
+  );
+  expect(details).toContain("<strong>Expandable Markdown</strong>");
+  expect(details).toContain('alt="A local image inside details"');
+  expect(details).toContain('href="https://example.com/details/"');
+  expect(html).not.toContain(":::details");
   assertFooterNavigation(html);
   const canonical = `${origin}/posts/${slug}/`;
   const links = [...html.matchAll(/<link\b[^>]*>/g)].map((match) =>
@@ -282,6 +291,14 @@ test("production builds a latest-post excerpt, archive, and complete posts witho
           `${fixture.marker}_FULL_ENDING`,
           "",
           `[Hidden ending link](https://example.com/${fixture.slug}-ending/)`,
+          "",
+          ":::details[Further details & evidence]",
+          "",
+          "**Expandable Markdown** and [a source](https://example.com/details/).",
+          "",
+          `![A local image inside details](./${body})`,
+          "",
+          ":::",
         ].join("\n"),
       );
     }
@@ -305,6 +322,7 @@ test("production builds a latest-post excerpt, archive, and complete posts witho
     expect(home).not.toContain("LATEST_POST_FIXTURE_FULL_ENDING");
     expect(home).not.toContain("https://example.com/latest-post-ending/");
     expect(home).not.toContain("Hidden ending link");
+    expect(home).not.toContain("<details>");
     const readMore = [...home.matchAll(/<a\b([^>]*)>([\s\S]*?)<\/a>/g)].filter(
       (match) => /Read more/.test(match[2]!),
     );

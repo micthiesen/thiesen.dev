@@ -69,7 +69,9 @@ and `bunx --no-install alchemy --help` after upgrades.
 - Preserve stable media dimensions, serif reading typography, automatic CSS themes,
   keyboard navigation, and reduced-motion preferences. No scroll-entry animation.
 - No MDX, CMS, database, React, Tailwind, or runtime article API. Add dependencies
-  only for implemented behavior. Rich Markdown directives are a later phase.
+  only for implemented behavior. The only Markdown directive is a top-level
+  `:::details[Summary]` section; `content-core` shares its validation and native
+  HTML rendering contract. Other rich directives remain a later phase.
 - One post type at `/posts/<slug>/`; no categories, tags, featured flags, or
   project metadata. The homepage renders the latest post's body, with a complete
   block excerpt for longer articles. Site navigation belongs only in the footer.

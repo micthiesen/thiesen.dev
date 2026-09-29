@@ -65,7 +65,8 @@ a {
 a:hover {
   color: var(--accent);
 }
-a:focus-visible {
+a:focus-visible,
+summary:focus-visible {
   outline: 2px solid var(--accent);
   outline-offset: 5px;
 }
@@ -224,6 +225,24 @@ p {
   border-top: 1px solid var(--hairline);
   margin-block: 3rem;
 }
+.prose details {
+  margin-block: 1.5rem;
+  border-block: 1px solid var(--hairline);
+}
+.prose summary {
+  padding-block: 0.75rem;
+  font-weight: 500;
+  cursor: pointer;
+}
+.prose summary:hover {
+  color: var(--accent);
+}
+.prose details[open] > summary {
+  margin-bottom: 0.75rem;
+}
+.prose details > :last-child:not(summary) {
+  margin-bottom: 1.5rem;
+}
 .post-preview.is-truncated .prose {
   position: relative;
 }
@@ -327,6 +346,15 @@ p {
   }
 }
 @media print {
+  .prose details::details-content {
+    content-visibility: visible;
+  }
+  .prose summary {
+    list-style: none;
+  }
+  .prose summary::-webkit-details-marker {
+    display: none;
+  }
   :root {
     --bg: white;
     --fg: black;

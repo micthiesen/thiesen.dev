@@ -7,6 +7,7 @@ import remarkGfm from "remark-gfm";
 import remarkParse from "remark-parse";
 import { unified } from "unified";
 import { visit } from "unist-util-visit";
+import { detailsIssue, remarkDetails } from "./details";
 import { isSafeSlug, postSchema, type PostMeta } from "./schema";
 
 export const MAX_IMAGE_BYTES = 10 * 1024 * 1024;
@@ -30,7 +31,7 @@ export interface ContentValidation {
   issues: ContentIssue[];
 }
 
-const markdown = unified().use(remarkParse).use(remarkGfm);
+const markdown = unified().use(remarkParse).use(remarkGfm).use(remarkDetails);
 
 function errorMessage(error: unknown): string {
   return error instanceof Error ? error.message : String(error);
@@ -142,8 +143,10 @@ function validateMarkdown(
     }
   };
 
-  visit(tree, (node) => {
+  visit(tree, (node, _index, parent) => {
     const line = node.position?.start.line;
+    const directiveIssue = detailsIssue(node, parent, body);
+    if (directiveIssue) issue(directiveIssue, line);
     switch (node.type) {
       case "html":
         issue(
@@ -177,12 +180,6 @@ function validateMarkdown(
         }
         break;
       case "text":
-        if (/(?:^|\n)\s*:{1,3}(?:figure|gallery|callout)\b/.test(node.value)) {
-          issue(
-            "Rich content directives are not implemented yet; use ordinary Markdown images, lists, and blockquotes",
-            line,
-          );
-        }
         if (
           /(?:^|\n)\s*(?:import\s+(?:[\w*{].*\s+from\s+|["'])|export\s+(?:default|const|let|var|function|class|\{)\b)/.test(
             node.value,

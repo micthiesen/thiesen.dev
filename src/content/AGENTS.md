@@ -17,9 +17,23 @@ must be PNG, JPEG, or WebP, at most 10 MiB, with meaningful alt text. Use a rela
 path such as `./screenshot.png`. Never use symlinks or references outside the post.
 Astro supplies optimized output and intrinsic dimensions.
 
+For optional technical detail, use a top-level expandable section:
+
+```markdown
+:::details[How the controller works]
+
+Normal Markdown goes here, including lists, code, links, and local images.
+
+:::
+```
+
+Use a nonempty plain-text summary and close each section. Sections start closed
+and work without JavaScript. Attributes, formatted summaries, empty sections,
+and nested directives are rejected. Keep the main story outside these sections.
+
 Raw HTML, MDX, remote images, unsafe URLs, and inline executable content are
-rejected. `figure`, `gallery`, `callout`, and `vega-lite` are planned in the design
-brief but not implemented by this scaffold; validation rejects them for now.
+rejected, including inside expandable sections. All other directives are rejected.
+`figure`, `gallery`, `callout`, and `vega-lite` remain unimplemented.
 
 Use first person for Michael's supported actions, decisions, and opinions; explain
 researched material directly without inventing a personal experience. Ground
