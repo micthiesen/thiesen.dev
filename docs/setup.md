@@ -1,7 +1,8 @@
 # Setup decisions
 
-This is the runnable foundation for the rebuild specification, not completion of
-its agent publishing workflow. Production deployment is managed by Alchemy.
+This is the runnable foundation for the rebuild specification. Local agent
+authoring uses the global `$post` skill; a remote content-scoped publishing
+service remains optional future work. Alchemy manages production deployment.
 
 ## Included
 
@@ -64,8 +65,6 @@ theme detection and reduced-motion behavior are CSS-only.
 Deployed on September 29, 2026, with Alchemy:
 
 - Production: [thiesen.dev](https://thiesen.dev).
-- Preview for PR #1:
-  [pr-1 Worker](https://thiesen-dev-website-pr-1-23sggi6e5c3clfuo.syas.workers.dev).
 - Production diagnostics:
   [prod Worker](https://thiesen-dev-website-prod-ibmyf2haocy3zxqj.syas.workers.dev).
 
@@ -130,7 +129,9 @@ Authentication and CI configuration:
    it never checks out or executes the PR branch.
    Each stage serializes the whole workflow, including checks, so a slow build
    cannot recreate a preview after cleanup. Applies are never auto-cancelled.
-6. Require PRs and checks `content-validation` and `build` in the GitHub ruleset.
+6. Posts use local draft review followed by an approved direct push to `main`.
+   Do not add a ruleset requiring post PRs. CI still runs `content-validation`
+   and `build` before deployment; the authoring agent does not wait for CI.
 
 Do not connect Workers Builds or deploy this stack with Wrangler alongside
 Alchemy. Alchemy must own updates and resource cleanup.
@@ -172,14 +173,17 @@ website has no availability requirement; restoring Vercel is optional.
 3. Add real project writing/screenshots, a raster social preview image, polished
    wide figures, and visual QA at desktop/mobile widths in both themes and with
    JavaScript disabled. Measure CLS/LCP on a deployed preview.
-4. Build a content-scoped publisher using this same `content-core` module. Use a
-   GitHub App installed only on this repository: Contents write, Pull requests
-   write, Metadata read; no Workflows or Administration permission. Validate
-   asset bytes/MIME, enforce writes under `src/content/posts/**`, use idempotency
-   keys and expected commit SHAs, and open draft PRs. Never give chat agents a
-   generic file-write or merge tool.
-5. Connect the publisher to Executor, then verify the complete draft, preview,
-   review, and merge workflow in the specification.
+4. If remote chat publishing is needed, build a content-scoped publisher using
+   this same `content-core` module. Use a GitHub App installed only on this
+   repository: Contents write and Metadata read; no Workflows or Administration
+   permission. Validate asset bytes/MIME, enforce writes under
+   `src/content/posts/**`, use idempotency
+   keys and expected commit SHAs. Preserve explicit approval of the concrete
+   draft before a write to `main`, without requiring a post PR. Never give chat
+   agents a generic file-write or merge tool.
+5. Connect that optional publisher to Executor, then verify draft, preview,
+   approval, and publication. This direct-push workflow supersedes the original
+   specification's PR-based publishing proposal.
 
 Scheduled publication depends on a new static build after the date arrives;
 there is no runtime scheduler. Add a timed build only if scheduling is wanted.

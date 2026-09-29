@@ -80,9 +80,18 @@ and `bunx --no-install alchemy --help` after upgrades.
 
 ## Delivery and conventions
 
-Completed work is authorized to be committed and pushed. Preserve concurrent
-edits, use a feature branch, and open a draft PR. Michael merges to `main`; merging
-deploys production after validation. Alchemy CI credentials are configured and
+For posts, create or revise a local draft and open its preview for Michael.
+Publish only after he approves the current revision, then commit the approved
+post and its required assets directly to `main` and push. No PR is required for
+posts. Do not wait for or poll CI after pushing; report deployment as pending
+unless verified live. Keep other drafts and concurrent edits out of the commit.
+The global `$post` skill in dotfiles owns this authoring workflow and uses this
+repository's helpers and content contract.
+
+For other site work, completed changes are authorized to be committed and pushed.
+Preserve concurrent edits, use a feature branch, and open a draft PR unless
+Michael authorizes direct publication. Merging to `main` deploys production after
+validation. Alchemy CI credentials are configured and
 `ALCHEMY_DEPLOY_ENABLED=true`; same-repository PRs deploy their preview stage.
 Do not switch an existing PR's draft state or change hosted deployment settings without the
 applicable authorization. The `prod` stage owns `thiesen.dev` and redirects

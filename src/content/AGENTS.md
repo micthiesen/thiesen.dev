@@ -21,11 +21,14 @@ Raw HTML, MDX, remote images, unsafe URLs, and inline executable content are
 rejected. `figure`, `gallery`, `callout`, and `vega-lite` are planned in the design
 brief but not implemented by this scaffold; validation rejects them for now.
 
-Write in first person, explain decisions directly, and ground technical claims
-in the project. No invented accomplishments, marketing language, or generic AI
-enthusiasm. The two example posts are drafts, not published work.
+Use first person for Michael's supported actions, decisions, and opinions; explain
+researched material directly without inventing a personal experience. Ground
+technical claims in the project. No invented accomplishments, marketing language,
+or generic AI enthusiasm. The checked-in samples are drafts, not published work.
 
-Run `bun run verify` before opening a content PR. Never merge or publish solely
-because a draft was requested. Preserve permanent URLs; a slug change needs an
-explicit permanent redirect. Chat publishing must eventually use scoped GitHub
+Run `bun run verify` before publishing. Preview locally and wait for Michael to
+approve the current revision, then commit the approved post and its assets
+directly to `main` and push, without a PR or waiting for CI. A request to draft
+does not authorize publication. Preserve permanent URLs; a slug change needs an
+explicit permanent redirect. A future remote publisher must use scoped GitHub
 App tools with expected commit SHAs and idempotency keys.

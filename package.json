@@ -13,6 +13,7 @@
     "check": "bun run lint && bun run format && bun run content:check",
     "check:write": "oxlint --fix --report-unused-disable-directives . && oxfmt --write . && prettier --write 'src/**/*.astro'",
     "content:check": "bun tools/content-check.ts",
+    "post": "bun tools/post.ts",
     "test": "bun test",
     "verify": "bun run check && bun run typecheck && bun test && bun run build",
     "deploy": "bun run check && bun run typecheck && bun test && alchemy deploy",
@@ -49,6 +50,7 @@
     "oxlint": "1.80.0",
     "prettier": "3.9.9",
     "prettier-plugin-astro": "1.1.0",
+    "sharp": "0.35.5",
     "typescript": "6.0.3"
   },
   "overrides": {
