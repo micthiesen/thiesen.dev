@@ -1,48 +1,53 @@
 ---
+import { Image } from "astro:assets";
+import { render } from "astro:content";
 import Base from "../layouts/Base.astro";
-import PostList from "../components/PostList.astro";
+import PostHeader from "../components/PostHeader.astro";
 import { getPosts } from "../lib/posts";
+import { excerptHtml } from "../lib/excerpt";
+import { postPath } from "../../packages/content-core/index";
 
-const posts = await getPosts();
-const projects = posts
-  .filter((post) => post.data.kind === "project" && post.data.featured)
-  .slice(0, 4);
-const notes = posts.filter((post) => post.data.kind === "note").slice(0, 4);
+const [latest] = await getPosts();
+const excerpt = latest
+  ? excerptHtml(latest.rendered?.html ?? "", postPath(latest.id))
+  : undefined;
+const rendered =
+  latest && excerpt
+    ? await render({ ...latest, rendered: { ...latest.rendered, html: excerpt.html } })
+    : undefined;
+const Content = rendered?.Content;
 ---
 
-<Base>
-  <section class="intro measure" aria-labelledby="intro-title">
-    <p class="eyebrow">Projects & notes</p>
-    <h1 id="intro-title">Software, tools, and things worth investigating.</h1>
-    <p>
-      I’m Michael. This is a place for the things I build and the notes I keep along the
-      way.
-    </p>
-  </section>
-  <section class="home-section" aria-labelledby="work-title">
-    <div class="section-heading">
-      <h2 id="work-title">Selected work</h2>
-      <a href="/projects/">
-        All projects <span aria-hidden="true">↗</span>
-      </a>
-    </div>
-    {projects.length ? (
-      <PostList posts={projects} showImages />
-    ) : (
-      <p class="empty-state">Project write-ups are on their way.</p>
-    )}
-  </section>
-  <section class="home-section" aria-labelledby="notes-title">
-    <div class="section-heading">
-      <h2 id="notes-title">Recent notes</h2>
-      <a href="/notes/">
-        All notes <span aria-hidden="true">↗</span>
-      </a>
-    </div>
-    {notes.length ? (
-      <PostList posts={notes} />
-    ) : (
-      <p class="empty-state">No notes published yet.</p>
-    )}
-  </section>
+<Base
+  {...(latest ? { description: latest.data.summary } : {})}
+  noindex={import.meta.env.DEV}
+>
+  {latest && Content && excerpt ? (
+    <article class:list={["post-preview", { "is-truncated": excerpt.truncated }]}>
+      <PostHeader post={latest} linked />
+      {latest.data.heroImage && latest.data.hero && (
+        <figure class="post-image">
+          <Image
+            src={latest.data.heroImage}
+            alt={latest.data.hero.alt}
+            widths={[640, 960, 1280]}
+            sizes="(max-width: 672px) calc(100vw - 48px), 624px"
+            loading="eager"
+          />
+        </figure>
+      )}
+      <div class="prose">
+        <Content />
+      </div>
+      {excerpt.truncated && (
+        <p class="read-more">
+          <a href={postPath(latest.id)} aria-label={`Read more: ${latest.data.title}`}>
+            Read more <span aria-hidden="true">→</span>
+          </a>
+        </p>
+      )}
+    </article>
+  ) : (
+    <h1 class="empty-state">No posts yet.</h1>
+  )}
 </Base>

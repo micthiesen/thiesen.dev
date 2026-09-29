@@ -2,7 +2,8 @@
 import { Image } from "astro:assets";
 import { render } from "astro:content";
 import Base from "./Base.astro";
-import { formatDate, type Post } from "../lib/posts";
+import { type Post } from "../lib/posts";
+import PostHeader from "../components/PostHeader.astro";
 import { isPublished, postPath } from "../../packages/content-core/index";
 
 interface Props {
@@ -12,9 +13,7 @@ const { post } = Astro.props;
 const { Content } = await render(post);
 const hero = post.data.heroImage;
 const publicPost = isPublished(post.data, new Date());
-const canonical =
-  post.data.canonical ?? new URL(postPath(post.data.kind, post.id), Astro.site).href;
-const project = post.data.project;
+const canonical = post.data.canonical ?? new URL(postPath(post.id), Astro.site).href;
 const jsonLd = JSON.stringify({
   "@context": "https://schema.org",
   "@type": "BlogPosting",
@@ -40,45 +39,19 @@ const jsonLd = JSON.stringify({
   {...(hero ? { image: hero.src } : {})}
 >
   <article class="post">
-    <header class="post-header measure">
-      <a class="eyebrow" href={post.data.kind === "project" ? "/projects/" : "/notes/"}>
-        {post.data.kind === "project" ? "Project" : "Note"}
-      </a>
-      {!publicPost && (
-        <p class="draft-notice">
-          Unpublished preview. This page is excluded from production.
-        </p>
-      )}
-      <h1>{post.data.title}</h1>
-      <p class="dek">{post.data.summary}</p>
-      <div class="post-meta">
-        {post.data.publishedAt && (
-          <time datetime={post.data.publishedAt}>
-            {formatDate(post.data.publishedAt)}
-          </time>
-        )}
-        {project?.status && <span>{project.status}</span>}
-        {post.data.tags.length > 0 && <span>{post.data.tags.join(" · ")}</span>}
-      </div>
-      {project && (
-        <div class="project-links">
-          {project.github && <a href={project.github}>GitHub ↗</a>}
-          {project.demo && <a href={project.demo}>Live project ↗</a>}
-        </div>
-      )}
-    </header>
+    <PostHeader post={post} />
     {hero && post.data.hero && (
-      <figure class="hero">
+      <figure class="post-image">
         <Image
           src={hero}
           alt={post.data.hero.alt}
           widths={[640, 960, 1280, 1600]}
-          sizes="(max-width: 1120px) 100vw, 68rem"
+          sizes="(max-width: 672px) calc(100vw - 48px), 624px"
           loading="eager"
         />
       </figure>
     )}
-    <div class="prose measure">
+    <div class="prose">
       <Content />
     </div>
   </article>

@@ -1,9 +1,7 @@
 ---
 title: "An ordinary Markdown note"
 summary: "A draft example for short observations and technical notes."
-kind: note
 status: draft
-tags: [Writing]
 ---
 
 This draft demonstrates the reading layout. Replace it with a real note before

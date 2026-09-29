@@ -13,7 +13,7 @@ import {
   validatePosts,
 } from "../packages/content-core";
 
-const base = { title: "A useful note", summary: "A concrete summary.", kind: "note" };
+const base = { title: "A useful post", summary: "A concrete summary." };
 const png = Buffer.from(
   "iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAQAAAC1HAwCAAAAC0lEQVR42mP8/x8AAwMCAO+j4uoAAAAASUVORK5CYII=",
   "base64",
@@ -85,36 +85,44 @@ describe("post metadata and publication", () => {
     ).toBe(false);
   });
 
-  test("rejects misspelled metadata and unsafe project URLs", () => {
+  test("rejects misspelled metadata and obsolete taxonomy fields", () => {
     expect(postSchema.safeParse({ ...base, publishAt: "2026-09-29" }).success).toBe(
       false,
     );
+    for (const legacy of [
+      { kind: "note" },
+      { kind: "project" },
+      { tags: ["Writing"] },
+      { featured: true },
+      { project: { github: "https://github.com/micthiesen/thiesen.dev" } },
+    ]) {
+      expect(postSchema.safeParse({ ...base, ...legacy }).success).toBe(false);
+    }
+  });
+
+  test("rejects unsafe canonical URLs and empty hero alt text", () => {
+    for (const canonical of [
+      "javascript:alert(1)",
+      "data:text/html,test",
+      "https://user:secret@example.com/",
+      "/relative-path/",
+    ]) {
+      expect(postSchema.safeParse({ ...base, canonical }).success).toBe(false);
+    }
     expect(
-      postSchema.safeParse({ ...base, kind: "project", project: { stats: "active" } })
-        .success,
-    ).toBe(false);
-    expect(
-      postSchema.safeParse({
-        ...base,
-        kind: "project",
-        project: { demo: "javascript:alert(1)" },
-      }).success,
-    ).toBe(false);
-    expect(
-      postSchema.safeParse({ ...base, canonical: "https://user:secret@example.com/" })
-        .success,
-    ).toBe(false);
+      postSchema.safeParse({ ...base, canonical: "https://example.com/post/" }).success,
+    ).toBe(true);
     expect(
       postSchema.safeParse({ ...base, hero: { src: "./hero.png", alt: "  " } }).success,
     ).toBe(false);
   });
 
   test("builds permanent paths only from safe slugs", () => {
-    expect(postPath("project", "agent-runner")).toBe("/projects/agent-runner/");
-    expect(postPath("note", "one-2-three")).toBe("/notes/one-2-three/");
+    expect(postPath("agent-runner")).toBe("/posts/agent-runner/");
+    expect(postPath("one-2-three")).toBe("/posts/one-2-three/");
     for (const slug of ["../escape", "UPPER", "a/b", "a--b", "a%2fb", "", "-start"]) {
       expect(isSafeSlug(slug)).toBe(false);
-      expect(() => postPath("note", slug)).toThrow();
+      expect(() => postPath(slug)).toThrow();
     }
   });
 
@@ -145,7 +153,7 @@ describe("normal Markdown boundary", () => {
   });
 
   async function post(
-    body = "A plain Markdown note.",
+    body = "A plain Markdown post.",
     metadata = "",
     slug = "example-post",
   ) {
@@ -153,7 +161,7 @@ describe("normal Markdown boundary", () => {
     await mkdir(directory, { recursive: true });
     await writeFile(
       path.join(directory, "index.md"),
-      `---\ntitle: A useful note\nsummary: A concrete summary.\nkind: note\n${metadata}---\n\n${body}\n`,
+      `---\ntitle: A useful post\nsummary: A concrete summary.\n${metadata}---\n\n${body}\n`,
     );
     return directory;
   }
@@ -232,7 +240,7 @@ describe("normal Markdown boundary", () => {
     const directory = await post();
     await writeFile(
       path.join(directory, "index.md"),
-      "---\ntitle: A note\nsummary: A summary\nkind: note\n",
+      "---\ntitle: A post\nsummary: A summary\n",
     );
     expect(await errors()).toContain("End YAML frontmatter");
   });

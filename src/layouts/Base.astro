@@ -13,7 +13,7 @@ interface Props {
 
 const {
   title,
-  description = "Software, tools, and things worth investigating. Projects and notes by Michael Thiesen.",
+  description = "Writing by Michael Thiesen.",
   canonical,
   article = false,
   noindex = false,
@@ -22,9 +22,10 @@ const {
 const pageTitle = title ? `${title} · Michael Thiesen` : "Michael Thiesen";
 const url = canonical ?? new URL(Astro.url.pathname, Astro.site).href;
 const links = [
-  { href: "/projects/", label: "Projects" },
-  { href: "/notes/", label: "Notes" },
+  { href: "/archive/", label: "Archive" },
   { href: "/about/", label: "About" },
+  { href: "/feed.xml", label: "RSS" },
+  { href: "https://github.com/micthiesen", label: "GitHub" },
 ];
 ---
 
@@ -58,30 +59,23 @@ const links = [
     <a class="skip-link" href="#main">
       Skip to content
     </a>
-    <header class="site-header shell">
-      <a class="wordmark" href="/">
-        Michael Thiesen<span class="site-dot">.</span>
+    <main id="main" class="shell">
+      <slot />
+    </main>
+    <footer class="site-footer shell">
+      <a class="footer-name" href="/">
+        Michael Thiesen
       </a>
-      <nav aria-label="Main navigation">
+      <nav aria-label="Footer">
         {links.map(({ href, label }) => (
           <a
             href={href}
-            aria-current={Astro.url.pathname.startsWith(href) ? "page" : undefined}
+            aria-current={Astro.url.pathname === href ? "page" : undefined}
           >
             {label}
           </a>
         ))}
       </nav>
-    </header>
-    <main id="main" class="shell">
-      <slot />
-    </main>
-    <footer class="site-footer shell">
-      <span>© {new Date().getUTCFullYear()} Michael Thiesen</span>
-      <div>
-        <a href="/feed.xml">RSS</a>
-        <a href="https://github.com/micthiesen">GitHub ↗</a>
-      </div>
     </footer>
   </body>
 </html>

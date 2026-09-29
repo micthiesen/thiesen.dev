@@ -7,14 +7,14 @@ export const GET: APIRoute = async ({ site }) => {
   const posts = await getPosts(false);
   return rss({
     title: "Michael Thiesen",
-    description: "Software, tools, and things worth investigating.",
+    description: "Writing by Michael Thiesen.",
     site: site!,
     trailingSlash: true,
     items: posts.map((post) => ({
       title: post.data.title,
       description: post.data.summary,
       pubDate: new Date(post.data.publishedAt!),
-      link: postPath(post.data.kind, post.id),
+      link: postPath(post.id),
     })),
     customData: "<language>en-ca</language>",
   });

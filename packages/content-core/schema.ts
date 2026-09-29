@@ -29,22 +29,10 @@ export const postSchema = z
   .strictObject({
     title: text,
     summary: text,
-    kind: z.enum(["project", "note"]),
     status: z.enum(["draft", "published"]).default("draft"),
     publishedAt: calendarDate.optional(),
     updatedAt: calendarDate.optional(),
-    tags: z.array(text).default([]),
-    featured: z.boolean().default(false),
     hero: z.strictObject({ src: text, alt: text }).optional(),
-    project: z
-      .strictObject({
-        github: webUrl.optional(),
-        demo: webUrl.optional(),
-        status: z.enum(["active", "complete", "archived", "experiment"]).optional(),
-        startedAt: calendarDate.optional(),
-        endedAt: calendarDate.optional(),
-      })
-      .optional(),
     canonical: webUrl.optional(),
   })
   .superRefine((post, context) => {
@@ -55,13 +43,6 @@ export const postSchema = z
         message: "Published posts require publishedAt",
       });
     }
-    if (post.kind !== "project" && post.project) {
-      context.addIssue({
-        code: "custom",
-        path: ["project"],
-        message: "Project metadata requires kind: project",
-      });
-    }
   });
 
 export type PostMeta = z.infer<typeof postSchema>;
@@ -70,9 +51,9 @@ export function isSafeSlug(slug: string): boolean {
   return /^[a-z0-9]+(?:-[a-z0-9]+)*$/.test(slug);
 }
 
-export function postPath(kind: PostMeta["kind"], slug: string): string {
+export function postPath(slug: string): string {
   if (!isSafeSlug(slug)) throw new Error(`Invalid post slug: ${slug}`);
-  return `/${kind === "project" ? "projects" : "notes"}/${slug}/`;
+  return `/posts/${slug}/`;
 }
 
 /** A scheduled post becomes eligible at midnight UTC on its publication date. */

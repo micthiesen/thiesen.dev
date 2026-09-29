@@ -8,16 +8,23 @@ its agent publishing workflow. Production deployment is managed by Alchemy.
 - Astro 7 static output; Solid integration ready for justified islands.
 - Shared `content-core` Zod schema, publication rules, safe URLs, Markdown and
   local media validation. Frontmatter dates accept quoted or unquoted ISO dates.
-- Draft project and note examples, shown only by `bun run dev`. Production
+- Draft authoring examples and a reading sample, shown only by `bun run dev`. Production
   builds, feeds, and sitemap omit drafts and future publication dates. The loader
   excludes them before Astro renders assets, so unpublished images are omitted
   too. The build script pins production mode even in a development environment.
-- Home, projects, notes, about, post, and 404 layouts; serif typography,
+- Latest-post home, a single archive, about, post, and 404 layouts; serif typography,
   automatic light/dark CSS, self-hosted Source Serif 4, reserved image dimensions,
   build-time code highlighting, canonical/OG text metadata, article JSON-LD.
 - RSS summaries, sitemap, robots.txt, static security headers, Alchemy infrastructure.
 - CI jobs named `content-validation` and `build`, followed by credential-gated
   deployment; closed PRs clean up their previews.
+
+The current [design direction](design.md) removes categories, tags, featured
+flags, and project-specific metadata. Every post uses `/posts/<slug>/`. Navigation
+is confined to the footer. The homepage shows the newest post's actual rendered
+body, ending longer excerpts at a complete block near 320 words. It does not ship
+the omitted content or its links. `parse5` finds safe HTML boundaries without
+reserializing Astro's image placeholders; it is used only during rendering.
 
 ## Tooling choices
 
@@ -173,7 +180,8 @@ Scheduled publication depends on a new static build after the date arrives;
 there is no runtime scheduler. Add a timed build only if scheduling is wanted.
 
 Until the first post is published, Astro reports an empty collection during the
-production build. This is expected with only the two draft examples checked in.
+production build. This is expected with only draft samples checked in. Production
+shows a simple empty state; the reading sample is never published just to fill it.
 
 ## Source references
 

@@ -1,13 +1,7 @@
 ---
 title: "A place for projects and notes"
 summary: "A draft example showing the structure of a project write-up."
-kind: project
 status: draft
-featured: true
-tags: [Astro, TypeScript]
-project:
-  github: "https://github.com/micthiesen/thiesen.dev"
-  status: active
 ---
 
 This is an authoring example, visible only during local development. Replace it

@@ -1,53 +1,28 @@
 ---
-import { Image } from "astro:assets";
-import { postPath } from "../../packages/content-core/index";
+import { postPath, isPublished } from "../../packages/content-core/index";
 import { formatDate, type Post } from "../lib/posts";
 
 interface Props {
   posts: Post[];
-  showImages?: boolean;
 }
-const { posts, showImages = false } = Astro.props;
+const { posts } = Astro.props;
 ---
 
-<ul class:list={["post-list", { "project-list": showImages }]}>
-  {posts.map((post) => {
-    const hero = showImages ? post.data.heroImage : undefined;
-    return (
-      <li>
-        <article>
-          <div class="post-row">
-            <h3>
-              <a href={postPath(post.data.kind, post.id)}>{post.data.title}</a>
-            </h3>
-            {post.data.status === "draft" ? (
-              <span class="eyebrow">Draft</span>
-            ) : (
-              post.data.publishedAt && (
-                <time datetime={post.data.publishedAt}>
-                  {formatDate(post.data.publishedAt)}
-                </time>
-              )
-            )}
-          </div>
-          <p class="post-summary">{post.data.summary}</p>
-          {hero && post.data.hero && (
-            <a
-              class="project-image"
-              href={postPath(post.data.kind, post.id)}
-              aria-label={`Read ${post.data.title}`}
-            >
-              <Image
-                src={hero}
-                alt={post.data.hero.alt}
-                widths={[640, 960, 1280]}
-                sizes="(max-width: 720px) 100vw, 68rem"
-                loading="lazy"
-              />
-            </a>
-          )}
-        </article>
-      </li>
-    );
-  })}
+<ul class="post-list">
+  {posts.map((post) => (
+    <li>
+      <span class="archive-date">
+        {isPublished(post.data, new Date()) && post.data.publishedAt ? (
+          <time datetime={post.data.publishedAt}>
+            {formatDate(post.data.publishedAt)}
+          </time>
+        ) : post.data.status === "draft" ? (
+          "Draft"
+        ) : (
+          "Scheduled"
+        )}
+      </span>
+      <a href={postPath(post.id)}>{post.data.title}</a>
+    </li>
+  ))}
 </ul>

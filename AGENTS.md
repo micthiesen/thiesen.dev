@@ -1,9 +1,10 @@
 # thiesen.dev
 
-Michael Thiesen's Git-backed static publication: projects and notes, built with
+Michael Thiesen's Git-backed static publication: one chronological post stream, built with
 Astro 7, plain Markdown, and optional Solid islands. The design brief is
 `docs/rebuild-specification.md`; implemented scope and remaining phases are in
-`docs/setup.md`.
+`docs/setup.md`. The current reading-first design is in `docs/design.md` and
+supersedes the original brief's categories and navigation.
 
 ## Architecture
 
@@ -69,6 +70,13 @@ and `bunx --no-install alchemy --help` after upgrades.
   keyboard navigation, and reduced-motion preferences. No scroll-entry animation.
 - No MDX, CMS, database, React, Tailwind, or runtime article API. Add dependencies
   only for implemented behavior. Rich Markdown directives are a later phase.
+- One post type at `/posts/<slug>/`; no categories, tags, featured flags, or
+  project metadata. The homepage renders the latest post's body, with a complete
+  block excerpt for longer articles. Site navigation belongs only in the footer.
+  No promotional hero, eyebrows, or introductory copy outside About.
+- Keep excerpt generation on the server. Preserve rendered HTML and Astro image
+  references; remove omitted content instead of leaving hidden keyboard targets.
+  The HTML parser is a build dependency and never enters the browser bundle.
 
 ## Delivery and conventions
 

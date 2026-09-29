@@ -1,14 +1,16 @@
 # Writing for thiesen.dev
 
 Use `posts/<lowercase-kebab-slug>/index.md`; keep assets beside the post.
-Use plain Markdown. Required metadata is `title`, `summary`, and `kind`
-(`project` or `note`). `status` defaults to `draft`. To publish, set
+Use plain Markdown. Required metadata is `title` and `summary`.
+`status` defaults to `draft`. To publish, set
 `status: published` and a valid `publishedAt: YYYY-MM-DD`. Future dates stay
 hidden until a later build. Drafts appear only in local development.
 
-Optional fields: `updatedAt`, `tags`, `featured`, `canonical`, `hero: {src, alt}`,
-and `project: {github, demo, status, startedAt, endedAt}`. Slugs come from directory
-names. Include `project.github` when a repository exists. Do not invent fields.
+Optional fields: `publishedAt`, `updatedAt`, `canonical`, and `hero: {src, alt}`.
+All writing belongs to one post stream, with URLs at `/posts/<slug>/`; slugs come
+from directory names. There are no categories, tags, featured posts, or separate
+project metadata. Put repository and demo links in the Markdown body. Do not invent
+fields.
 
 Use normal headings, links, lists, quotes, tables, and fenced code. Local images
 must be PNG, JPEG, or WebP, at most 10 MiB, with meaningful alt text. Use a relative

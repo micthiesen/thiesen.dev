@@ -117,16 +117,18 @@ function attributes(tag: string): Record<string, string> {
 
 async function assertPublishedPage(
   dist: string,
-  section: string,
   slug: string,
   marker: string,
 ): Promise<Set<string>> {
-  const html = await readFile(path.join(dist, section, slug, "index.html"), "utf8");
+  const html = await readFile(path.join(dist, "posts", slug, "index.html"), "utf8");
   expect(html).toContain(marker);
   expect(html).toContain("Real static content");
   expect(html).toContain("astro-code");
   expect(html).toContain("useful");
-  const canonical = `${origin}/${section}/${slug}/`;
+  expect(html).toContain(`${marker}_FULL_ENDING`);
+  expect(html).toContain(`https://example.com/${slug}-ending/`);
+  assertFooterNavigation(html);
+  const canonical = `${origin}/posts/${slug}/`;
   const links = [...html.matchAll(/<link\b[^>]*>/g)].map((match) =>
     attributes(match[0]),
   );
@@ -139,6 +141,18 @@ async function assertPublishedPage(
     headline: marker,
     url: canonical,
   });
+  return assertRenderedImages(dist, html);
+}
+
+function assertFooterNavigation(html: string): void {
+  const footer = html.match(/<footer\b[\s\S]*?<\/footer>/)?.[0];
+  expect(footer).toBeDefined();
+  expect(footer).toContain("<nav");
+  expect(html.replace(footer!, "")).not.toMatch(/<nav\b/);
+}
+
+async function assertRenderedImages(dist: string, html: string): Promise<Set<string>> {
+  expect(html).not.toContain("__ASTRO_IMAGE_");
   const images = [...html.matchAll(/<img\b[^>]*>/g)].map((match) =>
     attributes(match[0]),
   );
@@ -173,7 +187,7 @@ async function assertAbsent(dist: string, forbidden: string[]): Promise<void> {
   }
 }
 
-test("production builds publish complete posts without draft, future, or stale media", async () => {
+test("production builds a latest-post excerpt, archive, and complete posts without private or stale media", async () => {
   const scratch = await mkdtemp(path.join(os.tmpdir(), "thiesen-build-test-"));
   try {
     // Explicit inputs keep repository history, tests, documentation, and .env files out.
@@ -209,32 +223,28 @@ test("production builds publish complete posts without draft, future, or stale m
     await mkdir(posts, { recursive: true });
     const fixtures = [
       {
-        slug: "public-project",
-        kind: "project",
+        slug: "older-post",
         status: "published",
         date: "2020-02-29",
-        marker: "PUBLIC_PROJECT_FIXTURE",
+        marker: "OLDER_POST_FIXTURE",
       },
       {
-        slug: "public-note",
-        kind: "note",
+        slug: "latest-post",
         status: "published",
         date: "2020-03-01",
-        marker: "PUBLIC_NOTE_FIXTURE",
+        marker: "LATEST_POST_FIXTURE",
       },
       {
         slug: "private-draft",
-        kind: "note",
         status: "draft",
         date: undefined,
         marker: "PRIVATE_DRAFT_FIXTURE",
       },
       {
-        slug: "future-note",
-        kind: "note",
+        slug: "future-post",
         status: "published",
         date: "2099-01-01",
-        marker: "FUTURE_NOTE_FIXTURE",
+        marker: "FUTURE_POST_FIXTURE",
       },
     ];
     for (const [index, fixture] of fixtures.entries()) {
@@ -250,7 +260,6 @@ test("production builds publish complete posts without draft, future, or stale m
           "---",
           `title: ${fixture.marker}`,
           "summary: Fixture rendering verification",
-          `kind: ${fixture.kind}`,
           `status: ${fixture.status}`,
           ...(fixture.date ? [`publishedAt: ${fixture.date}`] : []),
           "hero:",
@@ -267,54 +276,74 @@ test("production builds publish complete posts without draft, future, or stale m
           "```ts",
           "const useful = true;",
           "```",
+          "",
+          Array.from({ length: 340 }, (_, word) => `word${word}`).join(" "),
+          "",
+          `${fixture.marker}_FULL_ENDING`,
+          "",
+          `[Hidden ending link](https://example.com/${fixture.slug}-ending/)`,
         ].join("\n"),
       );
     }
 
     await build(scratch);
     const dist = path.join(scratch, "dist");
-    const projectAssets = await assertPublishedPage(
+    const olderAssets = await assertPublishedPage(
       dist,
-      "projects",
-      "public-project",
-      "PUBLIC_PROJECT_FIXTURE",
+      "older-post",
+      "OLDER_POST_FIXTURE",
     );
-    await assertPublishedPage(dist, "notes", "public-note", "PUBLIC_NOTE_FIXTURE");
+    await assertPublishedPage(dist, "latest-post", "LATEST_POST_FIXTURE");
+    const home = await readFile(path.join(dist, "index.html"), "utf8");
+    expect(home).toContain("LATEST_POST_FIXTURE");
+    expect(home).toContain("Real static content");
+    expect(home).toContain("astro-code");
+    expect(home).toContain("useful");
+    expect(home).toContain("word339");
+    expect(home).not.toContain("OLDER_POST_FIXTURE");
+    expect(home).not.toContain("older-post");
+    expect(home).not.toContain("LATEST_POST_FIXTURE_FULL_ENDING");
+    expect(home).not.toContain("https://example.com/latest-post-ending/");
+    expect(home).not.toContain("Hidden ending link");
+    const readMore = [...home.matchAll(/<a\b([^>]*)>([\s\S]*?)<\/a>/g)].filter(
+      (match) => /Read more/.test(match[2]!),
+    );
+    expect(readMore).toHaveLength(1);
+    expect(attributes(readMore[0]![1]!)["href"]).toBe("/posts/latest-post/");
+    assertFooterNavigation(home);
+    await assertRenderedImages(dist, home);
+    const archive = await readFile(path.join(dist, "archive/index.html"), "utf8");
+    assertFooterNavigation(archive);
     const feed = await readFile(path.join(dist, "feed.xml"), "utf8");
     const sitemap = await readFile(path.join(dist, "sitemap-0.xml"), "utf8");
-    for (const [section, slug, marker] of [
-      ["projects", "public-project", "PUBLIC_PROJECT_FIXTURE"],
-      ["notes", "public-note", "PUBLIC_NOTE_FIXTURE"],
+    for (const [slug, marker] of [
+      ["older-post", "OLDER_POST_FIXTURE"],
+      ["latest-post", "LATEST_POST_FIXTURE"],
     ]) {
+      expect(archive).toContain(marker!);
+      expect(archive).toContain(`href="/posts/${slug}/"`);
       expect(feed).toContain(marker!);
-      expect(feed).toContain(`${origin}/${section}/${slug}/`);
-      expect(sitemap).toContain(`${origin}/${section}/${slug}/`);
+      expect(feed).toContain(`${origin}/posts/${slug}/`);
+      expect(sitemap).toContain(`${origin}/posts/${slug}/`);
     }
     const unpublished = [
       "private-draft",
-      "future-note",
+      "future-post",
       "PRIVATE_DRAFT_FIXTURE",
-      "FUTURE_NOTE_FIXTURE",
+      "FUTURE_POST_FIXTURE",
     ];
     await assertAbsent(dist, unpublished);
 
-    const projectFile = path.join(posts, "public-project/index.md");
+    const olderFile = path.join(posts, "older-post/index.md");
     await writeFile(
-      projectFile,
-      (await readFile(projectFile, "utf8")).replace(
-        "status: published",
-        "status: draft",
-      ),
+      olderFile,
+      (await readFile(olderFile, "utf8")).replace("status: published", "status: draft"),
     );
     await build(scratch);
-    await assertPublishedPage(dist, "notes", "public-note", "PUBLIC_NOTE_FIXTURE");
-    await assertAbsent(dist, [
-      ...unpublished,
-      "public-project",
-      "PUBLIC_PROJECT_FIXTURE",
-    ]);
+    await assertPublishedPage(dist, "latest-post", "LATEST_POST_FIXTURE");
+    await assertAbsent(dist, [...unpublished, "older-post", "OLDER_POST_FIXTURE"]);
     const remaining = new Set(await files(dist));
-    for (const asset of projectAssets) expect(remaining.has(asset)).toBe(false);
+    for (const asset of olderAssets) expect(remaining.has(asset)).toBe(false);
   } finally {
     await rm(scratch, { recursive: true, force: true });
   }
