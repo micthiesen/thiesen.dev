@@ -123,16 +123,10 @@ p {
 .post-header h1 a:hover {
   text-decoration: underline;
 }
-.post-date,
-.draft-notice {
+.post-date {
   color: var(--muted);
   font: 0.8125rem/1.6 var(--font-ui);
-}
-.post-date {
   margin: 0;
-}
-.draft-notice {
-  margin-bottom: 1rem;
 }
 .post-image {
   margin-block: 0 2rem;
@@ -280,7 +274,7 @@ p {
   gap: 1rem 2rem;
   border-top: 1px solid var(--hairline);
   margin-top: 4rem;
-  padding-block: 1.5rem 2.5rem;
+  padding-block: 1.5rem calc(4rem + env(safe-area-inset-bottom, 0px));
 }
 .footer-name {
   font-size: 1rem;

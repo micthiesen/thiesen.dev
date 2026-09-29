@@ -11,6 +11,7 @@ requirements.
   with a small fade and a Read more link. Short articles appear in full.
 - No site header, top navigation, sidebar, promotional hero, eyebrow labels,
   slogans, category pills, cards, or explanatory interface filler.
+  Local drafts use the same layout, without a visible preview label.
 - The footer contains Michael Thiesen, Archive, About, RSS, and GitHub. The
   archive is a single chronological list of dates and titles.
 - Retain Source Serif 4, the quiet warm palette, automatic light/dark themes,

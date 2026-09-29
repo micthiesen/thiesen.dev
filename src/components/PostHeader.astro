@@ -1,5 +1,5 @@
 ---
-import { isPublished, postPath } from "../../packages/content-core/index";
+import { postPath } from "../../packages/content-core/index";
 import { formatDate, type Post } from "../lib/posts";
 
 interface Props {
@@ -7,15 +7,9 @@ interface Props {
   linked?: boolean;
 }
 const { post, linked = false } = Astro.props;
-const published = isPublished(post.data, new Date());
 ---
 
 <header class="post-header">
-  {!published && (
-    <p class="draft-notice">
-      {post.data.status === "draft" ? "Draft" : "Scheduled"} · Local preview
-    </p>
-  )}
   <h1>
     {linked ? <a href={postPath(post.id)}>{post.data.title}</a> : post.data.title}
   </h1>

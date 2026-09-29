@@ -63,7 +63,7 @@ and `bunx --no-install alchemy --help` after upgrades.
 - Content rules live in `src/content/AGENTS.md`. Reuse `content-core` in any future
   publisher; never introduce another schema or a generic repository-write MCP tool.
 - Draft and future-dated posts must be absent from production routes, lists, RSS,
-  and sitemap. Dev previews must be labeled and noindex.
+  and sitemap. Dev previews must be noindex; do not add a visible preview label.
 - Astro renders normal pages. Solid requires actual client-side interaction and a
   useful static fallback. See `src/components/interactive/AGENTS.md`.
 - Preserve stable media dimensions, serif reading typography, automatic CSS themes,
@@ -82,7 +82,8 @@ and `bunx --no-install alchemy --help` after upgrades.
 
 Completed work is authorized to be committed and pushed. Preserve concurrent
 edits, use a feature branch, and open a draft PR. Michael merges to `main`; merging
-will deploy once Alchemy CI credentials and `ALCHEMY_DEPLOY_ENABLED` are configured.
+deploys production after validation. Alchemy CI credentials are configured and
+`ALCHEMY_DEPLOY_ENABLED=true`; same-repository PRs deploy their preview stage.
 Do not switch an existing PR's draft state or change hosted deployment settings without the
 applicable authorization. The `prod` stage owns `thiesen.dev` and redirects
 `www.thiesen.dev` to it; other stages must never attach those hostnames.

@@ -78,6 +78,11 @@ Live HTTP checks passed for pages, assets, RSS, sitemap, draft exclusion, and th
 404 response. Desktop/mobile browser checks passed on the production Worker.
 Preview destruction and recreation were exercised without changing production.
 
+Local Alchemy authentication is stored in its private profile. GitHub Actions has
+the scoped Cloudflare token and account ID, and `ALCHEMY_DEPLOY_ENABLED=true`.
+The repository's Actions event policy permits this workflow's preview cleanup
+trigger. Cloudflare's official `cf` CLI also has its own OAuth authentication.
+
 ### Configuration
 
 `alchemy.run.ts` is the deployment source of truth. `Cloudflare.Website.StaticSite`
