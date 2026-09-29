@@ -83,6 +83,11 @@ remote state. Never use local state for CI or cancel an Alchemy apply midway.
 Keep `memo: false` so publication dates are reevaluated on every deployment.
 Domain rollback requires explicit detachment (`domain: null`) and restoring the
 previous DNS records; simply omitting `domain` leaves its attachments unmanaged.
+Use the official `cf` CLI for Cloudflare inspection, authentication, and one-time
+DNS migration operations. Discover commands with `cf cli search` and inspect their
+schemas before mutations. Alchemy remains the source of truth for this site's
+Worker, domains, redirects, and state; do not add a second `cloudflare.config.ts`
+or deploy the same resources through `cf deploy`.
 
 Use maintained siblings `../condo`, `../omni-notify`, and `../mitools` for evolving
 tooling conventions, while keeping this site's static architecture. Their current

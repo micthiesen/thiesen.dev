@@ -101,6 +101,10 @@ Authentication and CI configuration:
 
 Do not connect Workers Builds or deploy this stack with Wrangler alongside
 Alchemy. Alchemy must own updates and resource cleanup.
+Use Cloudflare's official `cf` CLI for account inspection and one-time DNS
+migration operations. Its local authentication is managed with `cf auth login`;
+Alchemy and GitHub Actions also need their own deployment credentials. The
+Cloudflare MCP integration is no longer part of this workflow.
 
 ### Domain cutover and rollback
 
