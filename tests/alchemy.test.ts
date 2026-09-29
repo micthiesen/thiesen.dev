@@ -32,7 +32,7 @@ test("Alchemy can plan the static deployment without cloud access", async () => 
   );
 
   try {
-    for (const stage of ["prod", "pr-1"]) {
+    for (const stage of ["prod", "pr-1", "development"]) {
       const plan = await Effect.runPromise(
         evalStack(
           stack,
@@ -64,7 +64,11 @@ test("Alchemy can plan the static deployment without cloud access", async () => 
       }
       expect(website.props["main"]).toBeUndefined();
       expect(website.props["script"]).toBeUndefined();
-      expect(website.props["domain"]).toBeUndefined();
+      expect(website.props["domain"]).toEqual(
+        stage === "prod"
+          ? { name: "thiesen.dev", redirects: ["www.thiesen.dev"] }
+          : undefined,
+      );
       expect(website.props["assets"]).toMatchObject({
         notFoundHandling: "404-page",
       });

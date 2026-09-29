@@ -76,10 +76,13 @@ Completed work is authorized to be committed and pushed. Preserve concurrent
 edits, use a feature branch, and open a draft PR. Michael merges to `main`; merging
 will deploy once Alchemy CI credentials and `ALCHEMY_DEPLOY_ENABLED` are configured.
 Do not switch an existing PR's draft state or change hosted deployment settings without the
-applicable authorization. The initial setup does not deploy or move the domain.
+applicable authorization. The `prod` stage owns `thiesen.dev` and redirects
+`www.thiesen.dev` to it; other stages must never attach those hostnames.
 The `prod` stage and `pr-<number>` previews have separate resources and shared
 remote state. Never use local state for CI or cancel an Alchemy apply midway.
 Keep `memo: false` so publication dates are reevaluated on every deployment.
+Domain rollback requires explicit detachment (`domain: null`) and restoring the
+previous DNS records; simply omitting `domain` leaves its attachments unmanaged.
 
 Use maintained siblings `../condo`, `../omni-notify`, and `../mitools` for evolving
 tooling conventions, while keeping this site's static architecture. Their current

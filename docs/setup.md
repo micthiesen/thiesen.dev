@@ -1,7 +1,7 @@
 # Setup decisions
 
 This is the runnable foundation for the rebuild specification, not completion of
-its agent publishing workflow. The existing production site and domain are unchanged.
+its agent publishing workflow. Production deployment is managed by Alchemy.
 
 ## Included
 
@@ -50,7 +50,7 @@ The initial UI uses ordinary document navigation, which preserves zero site JS.
 View transitions can be added after visual comparison shows a benefit. Automatic
 theme detection and reduced-motion behavior are CSS-only.
 
-## Connect deployment
+## Deployment
 
 `alchemy.run.ts` is the deployment source of truth. `Cloudflare.Website.StaticSite`
 runs `bun run build`, then uploads `dist/` as an assets-only Worker with the static
@@ -60,10 +60,11 @@ the output even without a file change. Local development stays on `bun run dev`.
 
 The stack is named `thiesen-dev`. Stages `prod` and `pr-<number>` have distinct
 Workers and state. Alchemy chooses their physical Worker names and prints the
-deployed URL. No custom domain is declared during the rebuild.
+deployed URL. Only `prod` attaches `thiesen.dev` and `www.thiesen.dev`; the latter
+redirects to the apex with HTTP 301 while preserving the path and query string.
+The `workers.dev` endpoint remains available for diagnostics.
 
-The scaffold has not created cloud resources or configured GitHub secrets.
-To connect deployment:
+Authentication and CI configuration:
 
 1. Configure local authentication with
    `bunx --no-install alchemy profile edit --add Cloudflare`, using the intended
@@ -97,13 +98,30 @@ To connect deployment:
    Each stage serializes the whole workflow, including checks, so a slow build
    cannot recreate a preview after cleanup. Applies are never auto-cancelled.
 6. Require PRs and checks `content-validation` and `build` in the GitHub ruleset.
-   Once real content and visual QA are accepted, review existing hosting/DNS and
-   add `thiesen.dev` only to the production stage for the domain cutover.
 
 Do not connect Workers Builds or deploy this stack with Wrangler alongside
-Alchemy. Alchemy must own updates and resource cleanup. The workflow is ready to
-connect, but remote-state bootstrap, authenticated deployment, and live preview
-cleanup remain unverified until credentials are available.
+Alchemy. Alchemy must own updates and resource cleanup.
+
+### Domain cutover and rollback
+
+Before attaching production, deploy and verify a preview, back up DNS, and check
+for existing Worker domains, Worker routes, and redirect rules. Remove conflicting
+website records only after the new deployment is ready. Leave mail and unrelated
+subdomain records intact. The deployment token needs account permissions for
+Workers Scripts and Secrets Store, plus Zone Read, Workers Routes, DNS, and Single
+Redirect permissions for `thiesen.dev`.
+
+The previous website used Vercel with these DNS-only records (TTL automatic):
+
+- `thiesen.dev`: A `76.76.21.21`.
+- `www.thiesen.dev`: CNAME `cname.vercel-dns.com`.
+
+To roll back hosting, commit the production Worker's `domain: null` configuration
+and deploy `prod` so Alchemy removes its custom domains and owned redirect rule.
+Then restore those two DNS records and verify Vercel over HTTPS. Omitting the
+property does not detach domains. Keep `domain: null` in the deployment source
+until a deliberate new cutover so CI cannot reattach the hostnames. Keep the
+existing Vercel project available until the replacement is accepted.
 
 ## Next phases
 

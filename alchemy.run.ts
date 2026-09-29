@@ -9,6 +9,7 @@ export default Alchemy.Stack(
     state: Cloudflare.state(),
   },
   Effect.gen(function* () {
+    const stage = yield* Alchemy.Stage;
     const site = yield* Cloudflare.Website.StaticSite("Website", {
       command: "bun run build",
       outdir: "dist",
@@ -17,6 +18,9 @@ export default Alchemy.Stack(
       compatibility: { date: "2026-09-29" },
       assets: { notFoundHandling: "404-page" },
       workersDev: true,
+      ...(stage === "prod"
+        ? { domain: { name: "thiesen.dev", redirects: ["www.thiesen.dev"] } }
+        : {}),
     });
 
     return { url: site.url };
