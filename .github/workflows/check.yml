@@ -3,7 +3,10 @@ on:
   push:
     branches: [main]
   pull_request:
-    types: [opened, reopened, synchronize, closed]
+    types: [opened, reopened, synchronize]
+  pull_request_target:
+    # Cleanup must also run when a closed PR has merge conflicts.
+    types: [closed]
 permissions:
   contents: read
 concurrency:
@@ -68,6 +71,7 @@ jobs:
           CLOUDFLARE_ACCOUNT_ID: ${{ secrets.CLOUDFLARE_ACCOUNT_ID }}
   cleanup:
     if: >-
+      github.event_name == 'pull_request_target' &&
       github.event.action == 'closed' &&
       vars.ALCHEMY_DEPLOY_ENABLED == 'true' &&
       github.event.pull_request.head.repo.full_name == github.repository

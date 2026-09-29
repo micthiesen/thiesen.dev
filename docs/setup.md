@@ -81,13 +81,19 @@ To connect deployment:
    for that same account. Follow Alchemy's CI credential setup and scope the token
    to this deployment's resources, including its shared state backend. Never put
    tokens in committed files, issue bodies, or workflow output.
-5. Set repository variable `ALCHEMY_DEPLOY_ENABLED=true`. Until then the deploy
+5. Allow this workflow's `pull_request_target` trigger in the repository's
+   [Actions event policy](https://docs.github.com/en/actions/reference/security/securely-using-pull_request_target#default-policy-for-pull_request_target).
+   GitHub's default policy for public repositories is scheduled to block it
+   starting November 2, 2026. Then set repository variable
+   `ALCHEMY_DEPLOY_ENABLED=true`. Until then the deploy
    and cleanup jobs are explicitly skipped; validation and builds still run.
    Pushes to `main` deploy `prod` after both checks pass. Same-repository PRs
    deploy `pr-<number>`; forks only run checks and receive no deployment secrets.
    Same-repository writers are trusted to execute deployment code with the CI
    token; the future publisher must enforce its content-only write boundary.
    Closing or merging a PR destroys its preview using default-branch code.
+   Cleanup uses `pull_request_target: closed` so it also runs for conflicted PRs;
+   it never checks out or executes the PR branch.
    Each stage serializes the whole workflow, including checks, so a slow build
    cannot recreate a preview after cleanup. Applies are never auto-cancelled.
 6. Require PRs and checks `content-validation` and `build` in the GitHub ruleset.
