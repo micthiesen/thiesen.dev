@@ -52,6 +52,27 @@ theme detection and reduced-motion behavior are CSS-only.
 
 ## Deployment
 
+### Live deployment
+
+Deployed on September 29, 2026, with Alchemy:
+
+- Production: [thiesen.dev](https://thiesen.dev).
+- Preview for PR #1:
+  [pr-1 Worker](https://thiesen-dev-website-pr-1-23sggi6e5c3clfuo.syas.workers.dev).
+- Production diagnostics:
+  [prod Worker](https://thiesen-dev-website-prod-ibmyf2haocy3zxqj.syas.workers.dev).
+
+The personal Cloudflare account hosts both stages and the shared
+`alchemy-state-store` backend. The production stage owns the apex and `www`
+custom domains and the `www` redirect. The old Vercel website DNS records were
+replaced; all 14 mail and unrelated DNS records were preserved.
+
+Live HTTP checks passed for pages, assets, RSS, sitemap, draft exclusion, and the
+404 response. Desktop/mobile browser checks passed on the production Worker.
+Preview destruction and recreation were exercised without changing production.
+
+### Configuration
+
 `alchemy.run.ts` is the deployment source of truth. `Cloudflare.Website.StaticSite`
 runs `bun run build`, then uploads `dist/` as an assets-only Worker with the static
 404 page. No Astro server adapter, sessions, or Worker script is deployed for the
@@ -111,9 +132,10 @@ Cloudflare MCP integration is no longer part of this workflow.
 Before attaching production, deploy and verify a preview, back up DNS, and check
 for existing Worker domains, Worker routes, and redirect rules. Remove conflicting
 website records only after the new deployment is ready. Leave mail and unrelated
-subdomain records intact. The deployment token needs account permissions for
-Workers Scripts and Secrets Store, plus Zone Read, Workers Routes, DNS, and Single
-Redirect permissions for `thiesen.dev`.
+subdomain records intact. The deployment token needs Workers Scripts Edit,
+Secrets Store Edit, and Account Settings Read for the personal account, plus
+Zone Read, Workers Routes Edit, DNS Edit, and Single Redirect Edit for
+`thiesen.dev`.
 
 The previous website used Vercel with these DNS-only records (TTL automatic):
 
@@ -124,8 +146,8 @@ To roll back hosting, commit the production Worker's `domain: null` configuratio
 and deploy `prod` so Alchemy removes its custom domains and owned redirect rule.
 Then restore those two DNS records and verify Vercel over HTTPS. Omitting the
 property does not detach domains. Keep `domain: null` in the deployment source
-until a deliberate new cutover so CI cannot reattach the hostnames. Keep the
-existing Vercel project available until the replacement is accepted.
+until a deliberate new cutover so CI cannot reattach the hostnames. The old
+website has no availability requirement; restoring Vercel is optional.
 
 ## Next phases
 

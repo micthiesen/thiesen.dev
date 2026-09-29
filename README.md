@@ -2,7 +2,8 @@
 
 A Git-backed publication for Michael Thiesen's projects and notes. Astro 7 builds
 plain Markdown into static pages, with Solid available for interactive islands.
-Alchemy deploys the site to Cloudflare Workers Static Assets.
+Alchemy deploys the site to Cloudflare Workers Static Assets at
+[thiesen.dev](https://thiesen.dev).
 
 ```sh
 bun install
@@ -29,6 +30,6 @@ logic and tooling. Normal pages ship no site JavaScript. Solid is configured but
 no island is hydrated without a use case.
 
 See [setup decisions and next phases](docs/setup.md) for what is implemented and
-how to connect deployment. The full [KaraKeep rebuild specification](docs/rebuild-specification.md)
+deployment details. The full [KaraKeep rebuild specification](docs/rebuild-specification.md)
 is preserved as the design brief. Rich content directives, Vega charts, and the
 content-scoped MCP publisher are subsequent implementation work.
