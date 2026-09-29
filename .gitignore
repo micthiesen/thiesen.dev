@@ -1,7 +1,7 @@
 node_modules/
 dist/
 .astro/
-.wrangler/
+.alchemy/
 .env
 .env.*
 !.env.example

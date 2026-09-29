@@ -15,8 +15,9 @@ its agent publishing workflow. The existing production site and domain are uncha
 - Home, projects, notes, about, post, and 404 layouts; serif typography,
   automatic light/dark CSS, self-hosted Source Serif 4, reserved image dimensions,
   build-time code highlighting, canonical/OG text metadata, article JSON-LD.
-- RSS summaries, sitemap, robots.txt, static security headers, Workers asset config.
-- CI jobs named `content-validation` and `build`.
+- RSS summaries, sitemap, robots.txt, static security headers, Alchemy infrastructure.
+- CI jobs named `content-validation` and `build`, followed by credential-gated
+  deployment; closed PRs clean up their previews.
 
 ## Tooling choices
 
@@ -32,28 +33,71 @@ belong in the static publication. TypeScript is pinned to 6.0.3 because
 `@astrojs/check` 0.9.10 declares support for versions 5 and 6. Check compatibility
 before adopting the siblings' TypeScript 7.
 
+Prefer Effect for TypeScript logic, asynchronous work, typed errors, resource
+lifetimes, and schemas where usable. New validation contracts should use Effect
+Schema. The existing shared post schema remains the single Zod contract used by
+Astro content collections. The publishing service should reuse that boundary.
+Effect belongs in tooling and services; ordinary static pages still ship no JS.
+
+Alchemy `2.0.0-beta.79`, Effect `4.0.0-rc.115`, and the Bun/Node platform packages
+are pinned development dependencies. The `@effect/*` overrides also pin transitive
+packages to rc.115: rc.118 moves APIs such as `effect/unstable/cli/Command`, which
+breaks this Alchemy release. Upgrade them together after verifying the CLI and
+infrastructure test. Both platform packages are required because the Cloudflare
+provider also imports its Node bridge when invoked through Bun.
+
 The initial UI uses ordinary document navigation, which preserves zero site JS.
 View transitions can be added after visual comparison shows a benefit. Automatic
 theme detection and reduced-motion behavior are CSS-only.
 
 ## Connect deployment
 
-The scaffold does not create a Worker, change DNS, or configure GitHub settings.
+`alchemy.run.ts` is the deployment source of truth. `Cloudflare.Website.StaticSite`
+runs `bun run build`, then uploads `dist/` as an assets-only Worker with the static
+404 page. No Astro server adapter, sessions, or Worker script is deployed for the
+site. Builds deliberately use `memo: false` because publication dates can change
+the output even without a file change. Local development stays on `bun run dev`.
 
-1. Connect `micthiesen/thiesen.dev` in Cloudflare Workers Builds, Worker name
-   `thiesen-dev`, production branch `main`.
-2. Install with `bun install --frozen-lockfile`, build with `bun run verify`,
-   and deploy with `bunx wrangler deploy`. Match `.bun-version` and `.node-version`
-   in the build environment. Use `bunx wrangler versions upload` for preview
-   branches and review their generated URLs before merging.
-3. Configure a GitHub ruleset requiring PRs and checks `content-validation` and
-   `build`. Run the first PR so GitHub can discover those check names.
-4. Once the static site has real content and is accepted, attach `thiesen.dev`
-   as a custom domain and review its current hosting/DNS before cutover.
+The stack is named `thiesen-dev`. Stages `prod` and `pr-<number>` have distinct
+Workers and state. Alchemy chooses their physical Worker names and prints the
+deployed URL. No custom domain is declared during the rebuild.
 
-No deployment secrets belong in the repository. Workers Builds manages its
-deployment token; local deployment can use Wrangler login. `bun run deploy`
-validates before invoking Wrangler but must only be run for an authorized deploy.
+The scaffold has not created cloud resources or configured GitHub secrets.
+To connect deployment:
+
+1. Configure local authentication with
+   `bunx --no-install alchemy profile edit --add Cloudflare`, using the intended
+   personal account. Alchemy stores the profile outside the repository.
+2. Use `bun run deploy:plan --stage pr-1` to inspect the intended preview. Shared
+   state uses `Cloudflare.state()`, which can bootstrap a Worker, SQLite Durable
+   Object, and Secrets Store credentials on first access. Even the first plan
+   can require this state-store setup; it is not an offline validation command.
+   `bun test tests/alchemy.test.ts` is the offline infrastructure check.
+3. For an authorized first preview, run `bun run deploy --stage pr-1` and verify
+   the generated `workers.dev` URL. This validates the repository and lets
+   Alchemy run the production build. Keep the shared state backend in place;
+   `.alchemy/` is ignored and is not CI's source of state.
+4. Add GitHub Actions secrets `CLOUDFLARE_API_TOKEN` and `CLOUDFLARE_ACCOUNT_ID`
+   for that same account. Follow Alchemy's CI credential setup and scope the token
+   to this deployment's resources, including its shared state backend. Never put
+   tokens in committed files, issue bodies, or workflow output.
+5. Set repository variable `ALCHEMY_DEPLOY_ENABLED=true`. Until then the deploy
+   and cleanup jobs are explicitly skipped; validation and builds still run.
+   Pushes to `main` deploy `prod` after both checks pass. Same-repository PRs
+   deploy `pr-<number>`; forks only run checks and receive no deployment secrets.
+   Same-repository writers are trusted to execute deployment code with the CI
+   token; the future publisher must enforce its content-only write boundary.
+   Closing or merging a PR destroys its preview using default-branch code.
+   Each stage serializes the whole workflow, including checks, so a slow build
+   cannot recreate a preview after cleanup. Applies are never auto-cancelled.
+6. Require PRs and checks `content-validation` and `build` in the GitHub ruleset.
+   Once real content and visual QA are accepted, review existing hosting/DNS and
+   add `thiesen.dev` only to the production stage for the domain cutover.
+
+Do not connect Workers Builds or deploy this stack with Wrangler alongside
+Alchemy. Alchemy must own updates and resource cleanup. The workflow is ready to
+connect, but remote-state bootstrap, authenticated deployment, and live preview
+cleanup remain unverified until credentials are available.
 
 ## Next phases
 
@@ -87,4 +131,6 @@ production build. This is expected with only the two draft examples checked in.
 - [Astro content collections](https://docs.astro.build/en/guides/content-collections/)
 - [Astro Solid integration](https://docs.astro.build/en/guides/integrations-guide/solid-js/)
 - [Cloudflare static assets](https://developers.cloudflare.com/workers/static-assets/)
-- [Cloudflare Workers Builds](https://developers.cloudflare.com/workers/ci-cd/builds/)
+- [Alchemy static sites](https://alchemy.run/cloudflare/frontend/static-site/)
+- [Alchemy Cloudflare setup](https://alchemy.run/cloudflare/setup/)
+- [Alchemy CI and shared state](https://alchemy.run/cloudflare/tutorial/part-5/)

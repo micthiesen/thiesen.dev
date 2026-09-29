@@ -13,7 +13,7 @@ Astro 7, plain Markdown, and optional Solid islands. The design brief is
 - `src/pages/`, `src/layouts/`, `src/components/`: static rendering and navigation.
 - `src/styles/global.css`: typography, layout, automatic light/dark themes.
 - `tools/content-check.ts`: authoring validation CLI; `tests/`: Bun tests.
-- `wrangler.jsonc`: Cloudflare Workers Static Assets, no server adapter.
+- `alchemy.run.ts`: Alchemy-managed Cloudflare Workers Static Assets and shared state.
 
 ## Development and verification
 
@@ -41,12 +41,24 @@ and content types; Oxlint checks TypeScript; Oxfmt formats supported source file
 Prettier's Astro plugin formats `.astro` files. TypeScript 6 is intentional while
 `@astrojs/check` supports only versions 5 and 6. The shared mitools TypeScript
 config is extended with Astro's strictest config; mitools is a development-only
-dependency. No service, scheduler, notification hook, or Effect runtime is needed
-for a static site. Test preload strips provider credentials.
+dependency. Effect is used by deployment tooling; the generated publication is
+still static. Test preload strips provider credentials. Infrastructure tests
+compile real Alchemy plans against in-memory state with network access blocked.
+
+Alchemy is pinned to `2.0.0-beta.79` and Effect to `4.0.0-rc.115`. Keep the
+`@effect/*` dependency overrides aligned: rc.118 moved modules that this Alchemy
+release still imports. Upgrade this set together and run the infrastructure test
+and `bunx --no-install alchemy --help` after upgrades.
 
 ## Boundaries
 
 - Keep modules small and strongly typed. No debug leftovers or speculative layers.
+- Prefer Effect wherever usable in TypeScript: composition, asynchronous work,
+  resource lifetimes, typed failures, configuration, and schemas. Use Effect Schema
+  for new validation contracts. Keep framework-required adapters small: the
+  existing shared Zod post schema feeds Astro's content collection. Do not add
+  a competing schema for those posts. Keep Effect out of browser bundles unless
+  a concrete client feature needs it.
 - Content rules live in `src/content/AGENTS.md`. Reuse `content-core` in any future
   publisher; never introduce another schema or a generic repository-write MCP tool.
 - Draft and future-dated posts must be absent from production routes, lists, RSS,
@@ -62,9 +74,12 @@ for a static site. Test preload strips provider credentials.
 
 Completed work is authorized to be committed and pushed. Preserve concurrent
 edits, use a feature branch, and open a draft PR. Michael merges to `main`; merging
-will publish once Cloudflare Workers Builds is connected. Do not switch an
-existing PR's draft state or change hosted deployment settings without the
+will deploy once Alchemy CI credentials and `ALCHEMY_DEPLOY_ENABLED` are configured.
+Do not switch an existing PR's draft state or change hosted deployment settings without the
 applicable authorization. The initial setup does not deploy or move the domain.
+The `prod` stage and `pr-<number>` previews have separate resources and shared
+remote state. Never use local state for CI or cancel an Alchemy apply midway.
+Keep `memo: false` so publication dates are reevaluated on every deployment.
 
 Use maintained siblings `../condo`, `../omni-notify`, and `../mitools` for evolving
 tooling conventions, while keeping this site's static architecture. Their current

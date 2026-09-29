@@ -10,7 +10,7 @@
   "ignorePatterns": [
     "dist/**",
     ".astro/**",
-    ".wrangler/**",
+    ".alchemy/**",
     "**/*.astro",
     "**/*.md",
     "bun.lock"
