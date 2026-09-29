@@ -1,0 +1,11 @@
+{
+  "extends": ["@micthiesen/mitools/tsconfig/node.json", "astro/tsconfigs/strictest"],
+  "compilerOptions": {
+    "types": ["bun", "node"],
+    "jsx": "preserve",
+    "jsxImportSource": "solid-js",
+    "noEmit": true
+  },
+  "include": [".astro/types.d.ts", "**/*"],
+  "exclude": ["dist", "node_modules", ".alchemy"]
+}

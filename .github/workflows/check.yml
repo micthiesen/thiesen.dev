@@ -1,0 +1,104 @@
+name: Check
+on:
+  push:
+    branches: [main]
+  pull_request:
+    types: [opened, reopened, synchronize]
+  pull_request_target:
+    # Cleanup must also run when a closed PR has merge conflicts.
+    types: [closed]
+permissions:
+  contents: read
+concurrency:
+  # Hold this group through checks and deployment so a late build cannot
+  # recreate a preview after the PR's cleanup has already run.
+  group: alchemy-${{ github.event.pull_request.number && format('pr-{0}', github.event.pull_request.number) || 'prod' }}
+  cancel-in-progress: false
+jobs:
+  content-validation:
+    if: github.event.action != 'closed'
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v5
+      - uses: actions/setup-node@v5
+        with:
+          node-version-file: .node-version
+      - uses: oven-sh/setup-bun@v2
+        with:
+          bun-version-file: .bun-version
+      - run: bun install --frozen-lockfile
+      - run: bun run check
+      - run: bun run typecheck
+      - run: bun test
+  build:
+    if: github.event.action != 'closed'
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v5
+      - uses: actions/setup-node@v5
+        with:
+          node-version-file: .node-version
+      - uses: oven-sh/setup-bun@v2
+        with:
+          bun-version-file: .bun-version
+      - run: bun install --frozen-lockfile
+      - run: bun run build
+  deploy:
+    needs: [content-validation, build]
+    if: >-
+      vars.ALCHEMY_DEPLOY_ENABLED == 'true' &&
+      (github.event_name == 'push' ||
+       github.event.pull_request.head.repo.full_name == github.repository)
+    runs-on: ubuntu-latest
+    env:
+      ALCHEMY_STAGE: ${{ github.event.pull_request.number && format('pr-{0}', github.event.pull_request.number) || 'prod' }}
+      NO_TRACK: "true"
+    steps:
+      - uses: actions/checkout@v5
+        with:
+          persist-credentials: false
+      - uses: actions/setup-node@v5
+        with:
+          node-version-file: .node-version
+      - uses: oven-sh/setup-bun@v2
+        with:
+          bun-version-file: .bun-version
+      - run: bun install --frozen-lockfile
+      - name: Deploy static site
+        run: bunx --no-install alchemy deploy --stage "$ALCHEMY_STAGE" --yes --no-input
+        env:
+          CLOUDFLARE_API_TOKEN: ${{ secrets.CLOUDFLARE_API_TOKEN }}
+          CLOUDFLARE_ACCOUNT_ID: ${{ secrets.CLOUDFLARE_ACCOUNT_ID }}
+  cleanup:
+    if: >-
+      github.event_name == 'pull_request_target' &&
+      github.event.action == 'closed' &&
+      vars.ALCHEMY_DEPLOY_ENABLED == 'true' &&
+      github.event.pull_request.head.repo.full_name == github.repository
+    runs-on: ubuntu-latest
+    env:
+      ALCHEMY_STAGE: pr-${{ github.event.pull_request.number }}
+      NO_TRACK: "true"
+    steps:
+      # Destruction always uses trusted default-branch code, never PR code.
+      - uses: actions/checkout@v5
+        with:
+          ref: ${{ github.event.repository.default_branch }}
+          persist-credentials: false
+      - uses: actions/setup-node@v5
+        with:
+          node-version-file: .node-version
+      - uses: oven-sh/setup-bun@v2
+        with:
+          bun-version-file: .bun-version
+      - run: bun install --frozen-lockfile
+      - name: Remove this PR's resources
+        run: |
+          if [[ ! "$ALCHEMY_STAGE" =~ ^pr-[0-9]+$ ]]; then
+            echo "Refusing to destroy a non-preview stage" >&2
+            exit 1
+          fi
+          bunx --no-install alchemy destroy --stage "$ALCHEMY_STAGE" --yes --no-input
+        env:
+          CLOUDFLARE_API_TOKEN: ${{ secrets.CLOUDFLARE_API_TOKEN }}
+          CLOUDFLARE_ACCOUNT_ID: ${{ secrets.CLOUDFLARE_ACCOUNT_ID }}

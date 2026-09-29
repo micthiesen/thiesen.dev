@@ -1,0 +1,350 @@
+@font-face {
+  font-family: "Source Serif 4";
+  font-style: normal;
+  font-weight: 200 900;
+  font-display: swap;
+  src: url("@fontsource-variable/source-serif-4/files/source-serif-4-latin-wght-normal.woff2")
+    format("woff2-variations");
+}
+
+:root {
+  color-scheme: light dark;
+  --bg: #f7f6f2;
+  --fg: #171715;
+  --muted: #686761;
+  --hairline: #d9d7d0;
+  --surface: #efeee9;
+  --accent: #76543d;
+  --font-text: "Source Serif 4", Georgia, serif;
+  --font-ui: ui-sans-serif, system-ui, sans-serif;
+  --font-code: ui-monospace, "SFMono-Regular", Consolas, monospace;
+  --measure: 39rem;
+  font-family: var(--font-text);
+  font-size: 100%;
+  background: var(--bg);
+  color: var(--fg);
+}
+
+@media (prefers-color-scheme: dark) {
+  :root {
+    --bg: #151514;
+    --fg: #ecebe5;
+    --muted: #aaa9a2;
+    --hairline: #343431;
+    --surface: #1d1d1b;
+    --accent: #cda78b;
+  }
+  .astro-code,
+  .astro-code span {
+    color: var(--shiki-dark) !important;
+    background-color: var(--shiki-dark-bg) !important;
+    font-style: var(--shiki-dark-font-style) !important;
+    font-weight: var(--shiki-dark-font-weight) !important;
+    text-decoration: var(--shiki-dark-text-decoration) !important;
+  }
+}
+
+* {
+  box-sizing: border-box;
+}
+body {
+  margin: 0;
+  min-height: 100svh;
+  display: flex;
+  flex-direction: column;
+}
+main {
+  flex: 1;
+  padding-top: clamp(2.5rem, 7vw, 5rem);
+}
+a {
+  color: inherit;
+  text-underline-offset: 0.2em;
+  text-decoration-thickness: 1px;
+}
+a:hover {
+  color: var(--accent);
+}
+a:focus-visible {
+  outline: 2px solid var(--accent);
+  outline-offset: 5px;
+}
+::selection {
+  color: var(--bg);
+  background: var(--fg);
+}
+img {
+  display: block;
+  max-width: 100%;
+  height: auto;
+}
+figure {
+  margin: 2rem 0;
+}
+h1,
+h2,
+h3,
+p {
+  margin-block-start: 0;
+}
+h1,
+h2,
+h3 {
+  font-weight: 500;
+  line-height: 1.2;
+  text-wrap: balance;
+  overflow-wrap: anywhere;
+}
+h1 {
+  font-size: clamp(2rem, 5vw, 2.75rem);
+  letter-spacing: -0.025em;
+  margin-bottom: 0.75rem;
+}
+h2 {
+  font-size: 1.625rem;
+  letter-spacing: -0.015em;
+}
+h3 {
+  font-size: 1.3rem;
+}
+p {
+  line-height: 1.65;
+}
+.shell {
+  width: min(calc(100% - 3rem), var(--measure));
+  margin-inline: auto;
+}
+.post-header {
+  margin-bottom: 2.5rem;
+}
+.post-header h1 a {
+  text-decoration: none;
+}
+.post-header h1 a:hover {
+  text-decoration: underline;
+}
+.post-date {
+  color: var(--muted);
+  font: 0.8125rem/1.6 var(--font-ui);
+  margin: 0;
+}
+.post-image {
+  margin-block: 0 2rem;
+}
+.post-image img {
+  width: 100%;
+}
+.page-header {
+  margin-bottom: 2.5rem;
+}
+.empty-state {
+  margin: 0;
+  color: var(--muted);
+  font-size: 1.2rem;
+  font-weight: 400;
+  letter-spacing: normal;
+}
+.prose {
+  font-size: clamp(1.125rem, 1.05rem + 0.25vw, 1.25rem);
+  line-height: 1.65;
+  overflow-wrap: anywhere;
+}
+.prose > :first-child {
+  margin-top: 0;
+}
+.prose > :last-child {
+  margin-bottom: 0;
+}
+.prose h2 {
+  margin-block: 2.5rem 1rem;
+}
+.prose h3 {
+  margin-block: 2rem 0.75rem;
+}
+.prose p,
+.prose ul,
+.prose ol {
+  margin-bottom: 1.5rem;
+}
+.prose ul,
+.prose ol {
+  padding-inline-start: 1.5em;
+}
+.prose li {
+  margin-block: 0.35rem;
+}
+.prose li > p {
+  margin-block: 0.5rem;
+}
+.prose blockquote {
+  border-left: 1px solid var(--hairline);
+  margin: 2rem 0;
+  padding-left: 1.25rem;
+}
+.prose code {
+  font: 0.8em/1.6 var(--font-code);
+  padding: 0.1em 0.25em;
+  background: var(--surface);
+}
+.prose pre {
+  margin-block: 2rem;
+  padding: 1.1rem;
+  border: 1px solid var(--hairline);
+  overflow-x: auto;
+  line-height: 1.6;
+  tab-size: 2;
+}
+.prose pre code {
+  padding: 0;
+  background: none;
+  white-space: pre;
+}
+.prose table {
+  display: block;
+  overflow-x: auto;
+  border-collapse: collapse;
+  max-width: 100%;
+  margin-block: 2rem;
+  font: 0.875rem/1.6 var(--font-ui);
+}
+.prose th,
+.prose td {
+  padding: 0.6rem 0.85rem;
+  border-bottom: 1px solid var(--hairline);
+  text-align: left;
+}
+.prose th {
+  font-weight: 600;
+}
+.prose img {
+  margin-block: 2rem;
+}
+.prose hr {
+  border: 0;
+  border-top: 1px solid var(--hairline);
+  margin-block: 3rem;
+}
+.post-preview.is-truncated .prose {
+  position: relative;
+}
+.post-preview.is-truncated .prose::after {
+  content: "";
+  position: absolute;
+  inset: auto 0 -1px;
+  height: 5rem;
+  background: linear-gradient(transparent, var(--bg));
+  pointer-events: none;
+}
+.post-preview .prose:focus-within::after {
+  display: none;
+}
+.read-more {
+  margin: 1.25rem 0 0;
+  font-size: 1.05rem;
+}
+.post-list {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+}
+.post-list > li {
+  display: grid;
+  grid-template-columns: 7rem minmax(0, 1fr);
+  align-items: baseline;
+  gap: 0.75rem;
+  margin-block: 1.25rem;
+  font-size: 1.15rem;
+}
+.archive-date {
+  color: var(--muted);
+  font: 0.8125rem/1.5 var(--font-ui);
+}
+.post-list a {
+  text-decoration: none;
+  overflow-wrap: anywhere;
+}
+.post-list a:hover {
+  text-decoration: underline;
+}
+.site-footer {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: 1rem 2rem;
+  border-top: 1px solid var(--hairline);
+  margin-top: 4rem;
+  padding-block: 1.5rem calc(4rem + env(safe-area-inset-bottom, 0px));
+}
+.footer-name {
+  font-size: 1rem;
+}
+.site-footer nav {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.5rem 1.25rem;
+  color: var(--muted);
+  font: 0.8125rem/1.6 var(--font-ui);
+}
+.site-footer a {
+  text-decoration: none;
+  padding-block: 0.4rem;
+}
+.site-footer a:hover,
+.site-footer a[aria-current] {
+  text-decoration: underline;
+}
+.skip-link {
+  position: absolute;
+  top: -10rem;
+  left: 1rem;
+  padding: 0.75rem 1rem;
+  background: var(--fg);
+  color: var(--bg);
+  z-index: 1;
+  font-family: var(--font-ui);
+}
+.skip-link:focus {
+  top: 1rem;
+  color: var(--bg);
+}
+
+@media (max-width: 30rem) {
+  .post-list > li {
+    grid-template-columns: 1fr;
+    gap: 0.25rem;
+    margin-block: 1.5rem;
+  }
+}
+@media (prefers-reduced-motion: no-preference) {
+  a {
+    transition: color 120ms ease-out;
+  }
+}
+@media print, (forced-colors: active) {
+  .post-preview.is-truncated .prose::after {
+    display: none;
+  }
+}
+@media print {
+  :root {
+    --bg: white;
+    --fg: black;
+    --muted: black;
+  }
+  main {
+    padding-top: 0;
+  }
+  .site-footer,
+  .skip-link {
+    display: none;
+  }
+  .shell {
+    width: 100%;
+  }
+  .astro-code,
+  .astro-code span {
+    color: black !important;
+    background: transparent !important;
+  }
+}

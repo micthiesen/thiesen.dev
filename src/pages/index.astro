@@ -1,0 +1,53 @@
+---
+import { Image } from "astro:assets";
+import { render } from "astro:content";
+import Base from "../layouts/Base.astro";
+import PostHeader from "../components/PostHeader.astro";
+import { getPosts } from "../lib/posts";
+import { excerptHtml } from "../lib/excerpt";
+import { postPath } from "../../packages/content-core/index";
+
+const [latest] = await getPosts();
+const excerpt = latest
+  ? excerptHtml(latest.rendered?.html ?? "", postPath(latest.id))
+  : undefined;
+const rendered =
+  latest && excerpt
+    ? await render({ ...latest, rendered: { ...latest.rendered, html: excerpt.html } })
+    : undefined;
+const Content = rendered?.Content;
+---
+
+<Base
+  {...(latest ? { description: latest.data.summary } : {})}
+  noindex={import.meta.env.DEV}
+>
+  {latest && Content && excerpt ? (
+    <article class:list={["post-preview", { "is-truncated": excerpt.truncated }]}>
+      <PostHeader post={latest} linked />
+      {latest.data.heroImage && latest.data.hero && (
+        <figure class="post-image">
+          <Image
+            src={latest.data.heroImage}
+            alt={latest.data.hero.alt}
+            widths={[640, 960, 1280]}
+            sizes="(max-width: 672px) calc(100vw - 48px), 624px"
+            loading="eager"
+          />
+        </figure>
+      )}
+      <div class="prose">
+        <Content />
+      </div>
+      {excerpt.truncated && (
+        <p class="read-more">
+          <a href={postPath(latest.id)} aria-label={`Read more: ${latest.data.title}`}>
+            Read more <span aria-hidden="true">→</span>
+          </a>
+        </p>
+      )}
+    </article>
+  ) : (
+    <h1 class="empty-state">No posts yet.</h1>
+  )}
+</Base>

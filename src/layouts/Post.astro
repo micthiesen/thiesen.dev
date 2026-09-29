@@ -1,0 +1,59 @@
+---
+import { Image } from "astro:assets";
+import { render } from "astro:content";
+import Base from "./Base.astro";
+import { type Post } from "../lib/posts";
+import PostHeader from "../components/PostHeader.astro";
+import { isPublished, postPath } from "../../packages/content-core/index";
+
+interface Props {
+  post: Post;
+}
+const { post } = Astro.props;
+const { Content } = await render(post);
+const hero = post.data.heroImage;
+const publicPost = isPublished(post.data, new Date());
+const canonical = post.data.canonical ?? new URL(postPath(post.id), Astro.site).href;
+const jsonLd = JSON.stringify({
+  "@context": "https://schema.org",
+  "@type": "BlogPosting",
+  headline: post.data.title,
+  description: post.data.summary,
+  ...(post.data.publishedAt ? { datePublished: post.data.publishedAt } : {}),
+  ...(post.data.updatedAt ? { dateModified: post.data.updatedAt } : {}),
+  author: {
+    "@type": "Person",
+    name: "Michael Thiesen",
+    url: "https://thiesen.dev/about/",
+  },
+  url: canonical,
+}).replace(/</g, "\\u003c");
+---
+
+<Base
+  title={post.data.title}
+  description={post.data.summary}
+  canonical={canonical}
+  article
+  noindex={!publicPost}
+  {...(hero ? { image: hero.src } : {})}
+>
+  <article class="post">
+    <PostHeader post={post} />
+    {hero && post.data.hero && (
+      <figure class="post-image">
+        <Image
+          src={hero}
+          alt={post.data.hero.alt}
+          widths={[640, 960, 1280, 1600]}
+          sizes="(max-width: 672px) calc(100vw - 48px), 624px"
+          loading="eager"
+        />
+      </figure>
+    )}
+    <div class="prose">
+      <Content />
+    </div>
+  </article>
+  {publicPost && <script type="application/ld+json" is:inline set:html={jsonLd} />}
+</Base>

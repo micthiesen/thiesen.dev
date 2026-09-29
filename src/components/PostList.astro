@@ -1,0 +1,28 @@
+---
+import { postPath, isPublished } from "../../packages/content-core/index";
+import { formatDate, type Post } from "../lib/posts";
+
+interface Props {
+  posts: Post[];
+}
+const { posts } = Astro.props;
+---
+
+<ul class="post-list">
+  {posts.map((post) => (
+    <li>
+      <span class="archive-date">
+        {isPublished(post.data, new Date()) && post.data.publishedAt ? (
+          <time datetime={post.data.publishedAt}>
+            {formatDate(post.data.publishedAt)}
+          </time>
+        ) : post.data.status === "draft" ? (
+          "Draft"
+        ) : (
+          "Scheduled"
+        )}
+      </span>
+      <a href={postPath(post.id)}>{post.data.title}</a>
+    </li>
+  ))}
+</ul>

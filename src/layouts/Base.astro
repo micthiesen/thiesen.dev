@@ -1,0 +1,81 @@
+---
+import serifFont from "@fontsource-variable/source-serif-4/files/source-serif-4-latin-wght-normal.woff2?url";
+import "../styles/global.css";
+
+interface Props {
+  title?: string;
+  description?: string;
+  canonical?: string;
+  article?: boolean;
+  noindex?: boolean;
+  image?: string;
+}
+
+const {
+  title,
+  description = "Writing by Michael Thiesen.",
+  canonical,
+  article = false,
+  noindex = false,
+  image,
+} = Astro.props;
+const pageTitle = title ? `${title} · Michael Thiesen` : "Michael Thiesen";
+const url = canonical ?? new URL(Astro.url.pathname, Astro.site).href;
+const links = [
+  { href: "/archive/", label: "Archive" },
+  { href: "/about/", label: "About" },
+  { href: "/feed.xml", label: "RSS" },
+  { href: "https://github.com/micthiesen", label: "GitHub" },
+];
+---
+
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>{pageTitle}</title>
+    <meta name="description" content={description} />
+    <link rel="canonical" href={url} />
+    {noindex && <meta name="robots" content="noindex, nofollow" />}
+    <meta property="og:title" content={pageTitle} />
+    <meta property="og:description" content={description} />
+    <meta property="og:type" content={article ? "article" : "website"} />
+    <meta property="og:url" content={url} />
+    <meta property="og:site_name" content="Michael Thiesen" />
+    {image && <meta property="og:image" content={new URL(image, Astro.site).href} />}
+    <meta name="twitter:card" content={image ? "summary_large_image" : "summary"} />
+    <link rel="icon" href="/favicon.svg" type="image/svg+xml" />
+    <link
+      rel="alternate"
+      type="application/rss+xml"
+      title="Michael Thiesen"
+      href="/feed.xml"
+    />
+    <link rel="sitemap" href="/sitemap-index.xml" />
+    <link rel="preload" href={serifFont} as="font" type="font/woff2" crossorigin />
+  </head>
+  <body>
+    <a class="skip-link" href="#main">
+      Skip to content
+    </a>
+    <main id="main" class="shell">
+      <slot />
+    </main>
+    <footer class="site-footer shell">
+      <a class="footer-name" href="/">
+        Michael Thiesen
+      </a>
+      <nav aria-label="Footer">
+        {links.map(({ href, label }) => (
+          <a
+            href={href}
+            aria-current={Astro.url.pathname === href ? "page" : undefined}
+          >
+            {label}
+          </a>
+        ))}
+      </nav>
+    </footer>
+  </body>
+</html>
