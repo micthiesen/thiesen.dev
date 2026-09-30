@@ -1,0 +1,12 @@
+<!-- The beacon token is a public site identifier, not an API credential. -->
+<script is:inline data-cloudflare-analytics>
+  if (window.location.hostname === "thiesen.dev") {
+    const beacon = document.createElement("script");
+    beacon.type = "module";
+    beacon.src = "https://static.cloudflareinsights.com/beacon.min.js";
+    beacon.dataset.cfBeacon = JSON.stringify({
+      token: "5935ea3b388e4b37b4d5ac330b675e50",
+    });
+    document.body.appendChild(beacon);
+  }
+</script>

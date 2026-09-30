@@ -140,6 +140,31 @@ migration operations. Its local authentication is managed with `cf auth login`;
 Alchemy and GitHub Actions also need their own deployment credentials. The
 Cloudflare MCP integration is no longer part of this workflow.
 
+### Web Analytics
+
+Cloudflare Web Analytics uses manual installation for `thiesen.dev`; automatic
+injection is disabled to avoid duplicate beacons. `src/components/WebAnalytics.astro`
+contains the public beacon token, which is a site identifier rather than an API
+credential. It requires no GitHub secret or deployment environment variable.
+The existing CI build and Alchemy deploy include the component automatically.
+
+The shared layout includes analytics only in production builds on indexable
+pages. The bootstrap loads Cloudflare's beacon only when the browser hostname is
+exactly `thiesen.dev`, so local previews, PR deployments, and the production
+`workers.dev` diagnostic URL do not report traffic. Draft previews and the 404
+page omit the bootstrap. The site remains static with no analytics backend.
+
+View reports in the Cloudflare account's **Web Analytics** dashboard for
+`thiesen.dev`. Reports include visits, page views, referrers, geographic and
+device breakdowns, and page performance. Visits are not unique people. The
+service uses no analytics cookies, localStorage, or visitor fingerprinting;
+ad blockers can prevent reporting. Cloudflare currently retains six months of
+reports and does not support custom events or UTM campaign parameters.
+
+If the site is recreated in Cloudflare, replace the component's public beacon
+token and the build test's expected token together. Keep manual installation
+selected; the Alchemy stack continues to own hosting, domains, and deployment.
+
 ### Domain cutover and rollback
 
 Before attaching production, deploy and verify a preview, back up DNS, and check
