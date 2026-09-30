@@ -23,6 +23,10 @@ Use Bun 1.3.11 and Node 24.18.0 (version files are included). Bun manages packag
 and tests; Astro's CLI runs under Node. Read [AGENTS.md](AGENTS.md) for the exact
 editing gate and [the content contract](src/content/AGENTS.md) before writing.
 
+Work on `main` for site changes. Review and verify locally, then commit the scoped
+result and push directly; no PR or extra approval is required. Posts follow the
+preview approval workflow below before publication. Pushes deploy through CI.
+
 Use the global `$post` skill from any project directory to draft or revise a
 post in this checkout. It opens a local preview for approval, then publishes the
 approved revision with a direct push to `main`. No post PR or CI wait is needed.
@@ -45,7 +49,8 @@ The scaffold includes typed content, a latest-post homepage, one archive, static
 post routes, footer-only navigation, automatic CSS
 themes, a self-hosted serif font, Shiki code highlighting, RSS, sitemap, metadata,
 Alchemy infrastructure, and GitHub Actions. Effect is the default for TypeScript
-logic and tooling. Normal pages ship no site JavaScript. Solid is configured but
+logic and tooling. Pages are static; production loads Cloudflare's privacy-first
+Web Analytics only on `thiesen.dev`. Solid is configured but
 no island is hydrated without a use case.
 
 See [the reading-first design](docs/design.md) and

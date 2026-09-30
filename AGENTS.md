@@ -90,10 +90,14 @@ unless verified live. Keep other drafts and concurrent edits out of the commit.
 The global `$post` skill in dotfiles owns this authoring workflow and uses this
 repository's helpers and content contract.
 
-For other site work, completed changes are authorized to be committed and pushed.
-Preserve concurrent edits, use a feature branch, and open a draft PR unless
-Michael authorizes direct publication. Merging to `main` deploys production after
-validation. Alchemy CI credentials are configured and
+For other site work, work on `main`. Completed, reviewed, and locally verified
+changes are authorized to be committed and pushed directly to `main`, without
+a PR or another approval request. Preserve concurrent edits and commit only the
+scoped result. On a clean checkout, pull with `git pull --ff-only` before starting;
+if the remote moves, integrate safely without discarding edits or force-pushing.
+Inspect outgoing commits so unapproved posts and unrelated work are not published.
+Pushes to `main` deploy production after CI validation. Use a branch or PR only
+when Michael explicitly requests one. Alchemy CI credentials are configured and
 `ALCHEMY_DEPLOY_ENABLED=true`; same-repository PRs deploy their preview stage.
 Do not switch an existing PR's draft state or change hosted deployment settings without the
 applicable authorization. The `prod` stage owns `thiesen.dev` and redirects

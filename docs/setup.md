@@ -129,8 +129,12 @@ Authentication and CI configuration:
    it never checks out or executes the PR branch.
    Each stage serializes the whole workflow, including checks, so a slow build
    cannot recreate a preview after cleanup. Applies are never auto-cancelled.
-6. Posts use local draft review followed by an approved direct push to `main`.
-   Do not add a ruleset requiring post PRs. CI still runs `content-validation`
+6. Work on `main` and commit and push completed, reviewed, locally verified site
+   changes directly, without a PR or another approval request. Posts first need
+   approval of the current local preview, then use the same direct-push workflow.
+   Preserve unrelated edits and unapproved drafts. Branches and PRs are reserved
+   for explicit requests; their existing preview deployment remains supported.
+   Do not add a ruleset requiring PRs. CI still runs `content-validation`
    and `build` before deployment; the authoring agent does not wait for CI.
 
 Do not connect Workers Builds or deploy this stack with Wrangler alongside
