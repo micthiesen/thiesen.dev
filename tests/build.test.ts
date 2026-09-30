@@ -14,6 +14,7 @@ import os from "node:os";
 import path from "node:path";
 import { fileURLToPath } from "node:url";
 import { deflateSync } from "node:zlib";
+import { runInNewContext } from "node:vm";
 
 const repository = fileURLToPath(new URL("../", import.meta.url));
 const origin = "https://thiesen.dev";
@@ -142,7 +143,12 @@ async function assertPublishedPage(
     attributes(match[0]),
   );
   expect(links.find((link) => link["rel"] === "canonical")?.["href"]).toBe(canonical);
-  const scripts = [...html.matchAll(/<script\b([^>]*)>([\s\S]*?)<\/script>/g)];
+  assertAnalytics(html);
+  const allScripts = [...html.matchAll(/<script\b([^>]*)>([\s\S]*?)<\/script>/g)];
+  expect(allScripts).toHaveLength(2);
+  const scripts = allScripts.filter(
+    (match) => attributes(match[1] ?? "")["type"] === "application/ld+json",
+  );
   expect(scripts).toHaveLength(1);
   expect(attributes(scripts[0]![1] ?? "")["type"]).toBe("application/ld+json");
   expect(JSON.parse(scripts[0]![2]!)).toMatchObject({
@@ -151,6 +157,47 @@ async function assertPublishedPage(
     url: canonical,
   });
   return assertRenderedImages(dist, html);
+}
+
+function assertAnalytics(html: string): void {
+  const bootstraps = [
+    ...html.matchAll(
+      /<script\b[^>]*data-cloudflare-analytics[^>]*>([\s\S]*?)<\/script>/g,
+    ),
+  ];
+  expect(bootstraps).toHaveLength(1);
+  for (const hostname of [
+    "thiesen.dev",
+    "localhost",
+    "127.0.0.1",
+    "thiesen-dev-pr-1.workers.dev",
+    "thiesen.dev.example.com",
+  ]) {
+    const appended: { type?: string; src?: string; dataset: Record<string, string> }[] =
+      [];
+    runInNewContext(bootstraps[0]![1]!, {
+      window: { location: { hostname } },
+      document: {
+        createElement: (tag: string) => {
+          expect(tag).toBe("script");
+          return { dataset: {} };
+        },
+        body: {
+          appendChild: (script: (typeof appended)[number]) => appended.push(script),
+        },
+      },
+    });
+    expect(appended).toHaveLength(hostname === "thiesen.dev" ? 1 : 0);
+    if (appended[0]) {
+      expect(appended[0].type).toBe("module");
+      expect(appended[0].src).toBe(
+        "https://static.cloudflareinsights.com/beacon.min.js",
+      );
+      expect(JSON.parse(appended[0].dataset["cfBeacon"]!)).toEqual({
+        token: "5935ea3b388e4b37b4d5ac330b675e50",
+      });
+    }
+  }
 }
 
 function assertFooterNavigation(html: string): void {
@@ -305,6 +352,9 @@ test("production builds a latest-post excerpt, archive, and complete posts witho
 
     await build(scratch);
     const dist = path.join(scratch, "dist");
+    expect(await readFile(path.join(dist, "404.html"), "utf8")).not.toContain(
+      "data-cloudflare-analytics",
+    );
     const olderAssets = await assertPublishedPage(
       dist,
       "older-post",
@@ -312,6 +362,7 @@ test("production builds a latest-post excerpt, archive, and complete posts witho
     );
     await assertPublishedPage(dist, "latest-post", "LATEST_POST_FIXTURE");
     const home = await readFile(path.join(dist, "index.html"), "utf8");
+    assertAnalytics(home);
     expect(home).toContain("LATEST_POST_FIXTURE");
     expect(home).toContain("Real static content");
     expect(home).toContain("astro-code");
@@ -331,6 +382,8 @@ test("production builds a latest-post excerpt, archive, and complete posts witho
     assertFooterNavigation(home);
     await assertRenderedImages(dist, home);
     const archive = await readFile(path.join(dist, "archive/index.html"), "utf8");
+    assertAnalytics(archive);
+    assertAnalytics(await readFile(path.join(dist, "about/index.html"), "utf8"));
     assertFooterNavigation(archive);
     const feed = await readFile(path.join(dist, "feed.xml"), "utf8");
     const sitemap = await readFile(path.join(dist, "sitemap-0.xml"), "utf8");
