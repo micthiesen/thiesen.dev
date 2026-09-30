@@ -76,6 +76,8 @@ and `bunx --no-install alchemy --help` after upgrades.
   project metadata. The homepage renders the latest post's body, with a complete
   block excerpt for longer articles. Site navigation belongs only in the footer.
   No promotional hero, eyebrows, or introductory copy outside About.
+  Below the homepage article, show up to three earlier dated title links and omit
+  that section when empty. Keep excerpts fully readable, without a fade overlay.
 - Keep excerpt generation on the server. Preserve rendered HTML and Astro image
   references; remove omitted content instead of leaving hidden keyboard targets.
   The HTML parser is a build dependency and never enters the browser bundle.

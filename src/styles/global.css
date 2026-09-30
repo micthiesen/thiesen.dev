@@ -243,23 +243,36 @@ p {
 .prose details > :last-child:not(summary) {
   margin-bottom: 1.5rem;
 }
-.post-preview.is-truncated .prose {
-  position: relative;
-}
-.post-preview.is-truncated .prose::after {
-  content: "";
-  position: absolute;
-  inset: auto 0 -1px;
-  height: 5rem;
-  background: linear-gradient(transparent, var(--bg));
-  pointer-events: none;
-}
-.post-preview .prose:focus-within::after {
-  display: none;
-}
 .read-more {
-  margin: 1.25rem 0 0;
+  margin: 1.5rem 0 0;
   font-size: 1.05rem;
+  color: var(--accent);
+}
+.earlier-posts {
+  margin-top: clamp(3rem, 8vw, 4rem);
+  padding-top: 1.75rem;
+  border-top: 1px solid var(--hairline);
+}
+.earlier-posts h2 {
+  margin-bottom: 1.25rem;
+  font-size: 1.5rem;
+}
+.earlier-posts .post-list > li {
+  grid-template-columns: 1fr;
+  gap: 0.35rem;
+  margin: 0;
+  padding-block: 1rem;
+  font-size: 1.25rem;
+  line-height: 1.4;
+}
+.earlier-posts .post-list > li:first-child {
+  padding-top: 0;
+}
+.earlier-posts .post-list > li + li {
+  border-top: 1px solid var(--hairline);
+}
+.earlier-posts .post-list > li:last-child {
+  padding-bottom: 0;
 }
 .post-list {
   list-style: none;
@@ -338,11 +351,6 @@ p {
 @media (prefers-reduced-motion: no-preference) {
   a {
     transition: color 120ms ease-out;
-  }
-}
-@media print, (forced-colors: active) {
-  .post-preview.is-truncated .prose::after {
-    display: none;
   }
 }
 @media print {

@@ -3,11 +3,13 @@ import { Image } from "astro:assets";
 import { render } from "astro:content";
 import Base from "../layouts/Base.astro";
 import PostHeader from "../components/PostHeader.astro";
+import PostList from "../components/PostList.astro";
 import { getPosts } from "../lib/posts";
 import { excerptHtml } from "../lib/excerpt";
 import { postPath } from "../../packages/content-core/index";
 
-const [latest] = await getPosts();
+const [latest, ...pastPosts] = await getPosts();
+const earlierPosts = pastPosts.slice(0, 3);
 const excerpt = latest
   ? excerptHtml(latest.rendered?.html ?? "", postPath(latest.id))
   : undefined;
@@ -23,7 +25,7 @@ const Content = rendered?.Content;
   noindex={import.meta.env.DEV}
 >
   {latest && Content && excerpt ? (
-    <article class:list={["post-preview", { "is-truncated": excerpt.truncated }]}>
+    <article class="post-preview">
       <PostHeader post={latest} linked />
       {latest.data.heroImage && latest.data.hero && (
         <figure class="post-image">
@@ -49,5 +51,11 @@ const Content = rendered?.Content;
     </article>
   ) : (
     <h1 class="empty-state">No posts yet.</h1>
+  )}
+  {earlierPosts.length > 0 && (
+    <section class="earlier-posts" aria-labelledby="earlier-posts-heading">
+      <h2 id="earlier-posts-heading">Earlier posts</h2>
+      <PostList posts={earlierPosts} />
+    </section>
   )}
 </Base>

@@ -1,6 +1,36 @@
 import { expect, test } from "bun:test";
 import { excerptHtml } from "../src/lib/excerpt";
 
+test("a disclosure crossing the cutoff stays on the article, without an orphan heading", () => {
+  const intro = "<p>One two.</p>";
+  const html = `${intro}<h2>Technical details</h2><details><summary>Wiring</summary><p>Three four five.</p><a href="#later">Hidden link</a></details><p id="later">More text.</p>`;
+  expect(excerptHtml(html, "/posts/example/", 6)).toEqual({
+    html: intro,
+    truncated: true,
+  });
+});
+
+test("short posts and disclosures before the cutoff keep their native controls", () => {
+  const details = "<details><summary>More</summary><p>Two three.</p></details>";
+  const short = `<p>One.</p>${details}`;
+  expect(excerptHtml(short, "/posts/example/", 10)).toEqual({
+    html: short,
+    truncated: false,
+  });
+  expect(
+    excerptHtml(`${short}<p>Four five six.</p><p>Ending.</p>`, "/posts/example/", 6),
+  ).toEqual({ html: `${short}<p>Four five six.</p>`, truncated: true });
+});
+
+test("a leading disclosure crossing the cutoff leaves only the article link", () => {
+  const details = "<details><summary>More</summary><p>One two three.</p></details>";
+  for (const prefix of ["", "<h2>Details</h2>"]) {
+    expect(
+      excerptHtml(`${prefix}${details}<p>Ending.</p>`, "/posts/example/", 3),
+    ).toEqual({ html: "", truncated: true });
+  }
+});
+
 test("excerpts end at a complete block and leave the remaining article out", () => {
   const html =
     "<p>One <em>complete</em> paragraph.</p>\n<h2>Next section</h2><p>Hidden ending.</p>";

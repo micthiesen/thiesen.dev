@@ -14,6 +14,7 @@ export function excerptHtml(html: string, permalink: string, targetWords = 320) 
   const { childNodes } = parseFragment(html, { sourceCodeLocationInfo: true });
   let words = 0;
   let end = html.length;
+  let previousBlockEnd = 0;
 
   for (const node of childNodes) {
     words += wordCount(node);
@@ -23,8 +24,20 @@ export function excerptHtml(html: string, permalink: string, targetWords = 320) 
       !/^h[1-6]$/.test(node.tagName) &&
       node.sourceCodeLocation
     ) {
-      end = node.sourceCodeLocation.endOffset;
+      // Keep a disclosure that crosses the cutoff on the article page, along
+      // with any heading immediately before it. Its hidden body is not a preview.
+      end =
+        node.tagName === "details"
+          ? previousBlockEnd
+          : node.sourceCodeLocation.endOffset;
       break;
+    }
+    if (
+      "tagName" in node &&
+      !/^h[1-6]$/.test(node.tagName) &&
+      node.sourceCodeLocation
+    ) {
+      previousBlockEnd = node.sourceCodeLocation.endOffset;
     }
   }
 

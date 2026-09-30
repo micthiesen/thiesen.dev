@@ -290,6 +290,12 @@ test("production builds a latest-post excerpt, archive, and complete posts witho
         date: "2020-03-01",
         marker: "LATEST_POST_FIXTURE",
       },
+      ...["2020-02-28", "2020-02-27", "2020-02-26"].map((date, index) => ({
+        slug: `earlier-post-${index}`,
+        status: "published",
+        date,
+        marker: `EARLIER_POST_${index}_FIXTURE`,
+      })),
       {
         slug: "private-draft",
         status: "draft",
@@ -368,8 +374,25 @@ test("production builds a latest-post excerpt, archive, and complete posts witho
     expect(home).toContain("astro-code");
     expect(home).toContain("useful");
     expect(home).toContain("word339");
-    expect(home).not.toContain("OLDER_POST_FIXTURE");
-    expect(home).not.toContain("older-post");
+    const earlier = home.match(
+      /<section\b[^>]*class="earlier-posts"[\s\S]*?<\/section>/,
+    )?.[0];
+    expect(earlier).toBeDefined();
+    expect(earlier!.match(/<li\b/g)).toHaveLength(3);
+    expect(earlier).toContain('href="/posts/older-post/"');
+    expect(earlier).toContain('href="/posts/earlier-post-0/"');
+    expect(earlier).toContain('href="/posts/earlier-post-1/"');
+    expect(earlier).not.toContain("latest-post");
+    expect(earlier).not.toContain("earlier-post-2");
+    expect(earlier!.indexOf("older-post")).toBeLessThan(
+      earlier!.indexOf("earlier-post-0"),
+    );
+    expect(earlier!.indexOf("earlier-post-0")).toBeLessThan(
+      earlier!.indexOf("earlier-post-1"),
+    );
+    expect(home).not.toContain("OLDER_POST_FIXTURE_FULL_ENDING");
+    expect(home.indexOf("</article>")).toBeLessThan(home.indexOf(earlier!));
+    expect(home.indexOf(earlier!)).toBeLessThan(home.indexOf("<footer"));
     expect(home).not.toContain("LATEST_POST_FIXTURE_FULL_ENDING");
     expect(home).not.toContain("https://example.com/latest-post-ending/");
     expect(home).not.toContain("Hidden ending link");
@@ -405,14 +428,27 @@ test("production builds a latest-post excerpt, archive, and complete posts witho
     ];
     await assertAbsent(dist, unpublished);
 
-    const olderFile = path.join(posts, "older-post/index.md");
-    await writeFile(
-      olderFile,
-      (await readFile(olderFile, "utf8")).replace("status: published", "status: draft"),
-    );
+    for (const slug of [
+      "older-post",
+      "earlier-post-0",
+      "earlier-post-1",
+      "earlier-post-2",
+    ]) {
+      const olderFile = path.join(posts, slug, "index.md");
+      await writeFile(
+        olderFile,
+        (await readFile(olderFile, "utf8")).replace(
+          "status: published",
+          "status: draft",
+        ),
+      );
+    }
     await build(scratch);
     await assertPublishedPage(dist, "latest-post", "LATEST_POST_FIXTURE");
     await assertAbsent(dist, [...unpublished, "older-post", "OLDER_POST_FIXTURE"]);
+    expect(await readFile(path.join(dist, "index.html"), "utf8")).not.toContain(
+      "earlier-posts",
+    );
     const remaining = new Set(await files(dist));
     for (const asset of olderAssets) expect(remaining.has(asset)).toBe(false);
   } finally {

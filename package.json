@@ -13,6 +13,7 @@
     "check": "bun run lint && bun run format && bun run content:check",
     "check:write": "oxlint --fix --report-unused-disable-directives . && oxfmt --write . && prettier --write 'src/**/*.astro'",
     "content:check": "bun tools/content-check.ts",
+    "icons:generate": "bun tools/generate-icons.ts",
     "post": "bun tools/post.ts",
     "test": "bun test",
     "verify": "bun run check && bun run typecheck && bun test && bun run build",
