@@ -94,7 +94,11 @@ The stack is named `thiesen-dev`. Stages `prod` and `pr-<number>` have distinct
 Workers and state. Alchemy chooses their physical Worker names and prints the
 deployed URL. Only `prod` attaches `thiesen.dev` and `www.thiesen.dev`; the latter
 redirects to the apex with HTTP 301 while preserving the path and query string.
-The `workers.dev` endpoint remains available for diagnostics.
+The `workers.dev` endpoint remains available for diagnostics. The zone setting
+`always_use_https` is `on` (set once with `cf zones settings edit`, outside Alchemy,
+because Alchemy's zone-setting resource needs network access to plan), so plain HTTP
+gets a 301 to HTTPS. `public/_redirects` sends slashless page URLs to their
+trailing-slash form with a 301 rather than the assets runtime's default 307.
 
 Authentication and CI configuration:
 
