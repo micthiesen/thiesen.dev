@@ -116,6 +116,18 @@ function attributes(tag: string): Record<string, string> {
   );
 }
 
+function structuredData(html: string): unknown[] {
+  return [...html.matchAll(/<script\b([^>]*)>([\s\S]*?)<\/script>/g)]
+    .filter((match) => attributes(match[1] ?? "")["type"] === "application/ld+json")
+    .map((match) => JSON.parse(match[2]!));
+}
+
+function metaDescription(html: string): string | undefined {
+  return [...html.matchAll(/<meta\b[^>]*>/g)]
+    .map((match) => attributes(match[0]))
+    .find((meta) => meta["name"] === "description")?.["content"];
+}
+
 async function assertPublishedPage(
   dist: string,
   slug: string,
@@ -369,6 +381,12 @@ test("production builds a latest-post excerpt, archive, and complete posts witho
     await assertPublishedPage(dist, "latest-post", "LATEST_POST_FIXTURE");
     const home = await readFile(path.join(dist, "index.html"), "utf8");
     assertAnalytics(home);
+    expect(metaDescription(home)).toBe(
+      "Michael Thiesen writes about engineering, AI, electronics, and the things he builds.",
+    );
+    expect(structuredData(home)).toEqual([
+      expect.objectContaining({ "@type": "WebSite", url: `${origin}/` }),
+    ]);
     expect(home).toContain("LATEST_POST_FIXTURE");
     expect(home).toContain("Real static content");
     expect(home).toContain("astro-code");
@@ -406,7 +424,17 @@ test("production builds a latest-post excerpt, archive, and complete posts witho
     await assertRenderedImages(dist, home);
     const archive = await readFile(path.join(dist, "archive/index.html"), "utf8");
     assertAnalytics(archive);
-    assertAnalytics(await readFile(path.join(dist, "about/index.html"), "utf8"));
+    const about = await readFile(path.join(dist, "about/index.html"), "utf8");
+    assertAnalytics(about);
+    expect(structuredData(about)).toEqual([
+      expect.objectContaining({
+        "@type": "ProfilePage",
+        mainEntity: expect.objectContaining({
+          "@type": "Person",
+          sameAs: ["https://github.com/micthiesen"],
+        }),
+      }),
+    ]);
     assertFooterNavigation(archive);
     const feed = await readFile(path.join(dist, "feed.xml"), "utf8");
     const sitemap = await readFile(path.join(dist, "sitemap-0.xml"), "utf8");

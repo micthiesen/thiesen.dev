@@ -4,6 +4,8 @@ import { render } from "astro:content";
 import Base from "./Base.astro";
 import { type Post } from "../lib/posts";
 import PostHeader from "../components/PostHeader.astro";
+import JsonLd from "../components/JsonLd.astro";
+import { author } from "../lib/author";
 import { isPublished, postPath } from "../../packages/content-core/index";
 
 interface Props {
@@ -14,20 +16,15 @@ const { Content } = await render(post);
 const hero = post.data.heroImage;
 const publicPost = isPublished(post.data, new Date());
 const canonical = post.data.canonical ?? new URL(postPath(post.id), Astro.site).href;
-const jsonLd = JSON.stringify({
-  "@context": "https://schema.org",
+const structuredData = {
   "@type": "BlogPosting",
   headline: post.data.title,
   description: post.data.summary,
   ...(post.data.publishedAt ? { datePublished: post.data.publishedAt } : {}),
   ...(post.data.updatedAt ? { dateModified: post.data.updatedAt } : {}),
-  author: {
-    "@type": "Person",
-    name: "Michael Thiesen",
-    url: "https://thiesen.dev/about/",
-  },
+  author,
   url: canonical,
-}).replace(/</g, "\\u003c");
+};
 ---
 
 <Base
@@ -55,5 +52,5 @@ const jsonLd = JSON.stringify({
       <Content />
     </div>
   </article>
-  {publicPost && <script type="application/ld+json" is:inline set:html={jsonLd} />}
+  {publicPost && <JsonLd data={structuredData} />}
 </Base>

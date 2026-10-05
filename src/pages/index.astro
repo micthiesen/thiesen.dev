@@ -4,6 +4,8 @@ import { render } from "astro:content";
 import Base from "../layouts/Base.astro";
 import PostHeader from "../components/PostHeader.astro";
 import PostList from "../components/PostList.astro";
+import JsonLd from "../components/JsonLd.astro";
+import { author } from "../lib/author";
 import { getPosts } from "../lib/posts";
 import { excerptHtml } from "../lib/excerpt";
 import { postPath } from "../../packages/content-core/index";
@@ -20,10 +22,7 @@ const rendered =
 const Content = rendered?.Content;
 ---
 
-<Base
-  {...(latest ? { description: latest.data.summary } : {})}
-  noindex={import.meta.env.DEV}
->
+<Base noindex={import.meta.env.DEV}>
   {latest && Content && excerpt ? (
     <article class="post-preview">
       <PostHeader post={latest} linked />
@@ -58,4 +57,12 @@ const Content = rendered?.Content;
       <PostList posts={earlierPosts} />
     </section>
   )}
+  <JsonLd
+    data={{
+      "@type": "WebSite",
+      name: "Michael Thiesen",
+      url: new URL("/", Astro.site).href,
+      author,
+    }}
+  />
 </Base>
