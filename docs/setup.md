@@ -31,7 +31,7 @@ reserializing Astro's image placeholders; it is used only during rendering.
 
 The setup skill's Bun baseline is retained for package management and tests.
 Astro supplies the static build and local server; a Bun application server would
-add no value here. Current sibling conventions (`condo`, `omni-notify`, `mitools`)
+add no value here. Current sibling conventions (`condo`, `omni`, `mitools`)
 use Oxlint/Oxfmt, so this project follows those instead of introducing Biome.
 Astro files additionally use its official Prettier plugin.
 

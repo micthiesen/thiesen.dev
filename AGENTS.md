@@ -115,7 +115,7 @@ schemas before mutations. Alchemy remains the source of truth for this site's
 Worker, domains, redirects, and state; do not add a second `cloudflare.config.ts`
 or deploy the same resources through `cf deploy`.
 
-Use maintained siblings `../condo`, `../omni-notify`, and `../mitools` for evolving
+Use maintained siblings `../condo`, `../omni`, and `../mitools` for evolving
 tooling conventions, while keeping this site's static architecture. Their current
 Oxlint/Oxfmt conventions supersede the setup skill's older Biome default.
 Update these living instructions when a durable project convention changes.
