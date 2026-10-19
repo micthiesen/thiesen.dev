@@ -214,8 +214,8 @@ website has no availability requirement; restoring Vercel is optional.
    keys and expected commit SHAs. Preserve explicit approval of the concrete
    draft before a write to `main`, without requiring a post PR. Never give chat
    agents a generic file-write or merge tool.
-5. Connect that optional publisher to Executor, then verify draft, preview,
-   approval, and publication. This direct-push workflow supersedes the original
+5. Connect that optional publisher to Omni's MCP gateway as an integration,
+   then verify draft, preview, approval, and publication. This direct-push workflow supersedes the original
    specification's PR-based publishing proposal.
 
 Scheduled publication depends on a new static build after the date arrives;
